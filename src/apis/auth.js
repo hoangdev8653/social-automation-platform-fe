@@ -9,7 +9,7 @@ export const register = async (data) => {
 };
 
 export const login = async (data) => {
-  return await axxiosConfig({
+  return await axiosConfig({
     method: "post",
     url: "user/login",
     data,
