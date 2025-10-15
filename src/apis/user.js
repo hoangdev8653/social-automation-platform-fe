@@ -3,7 +3,7 @@ import { axiosConfig } from "../axiosConfig";
 export const getAllUser = async () => {
   return await axiosConfig({
     method: "get",
-    url: "user/all",
+    url: "user",
   });
 };
 
