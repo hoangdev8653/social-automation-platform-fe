@@ -10,9 +10,9 @@ import LayoutAdmin from "../src/templates/admin/LayoutAdmin";
 import Dashboard from "../src/pages/admin/Dashboard";
 import AI from "../src/pages/admin/AI";
 import Analytic from "../src/pages/admin/Analytic";
-import ManagerPage from "../src/pages/admin/ManagerPage";
-import ManagerUser from "../src/pages/admin/ManagerUser";
-import ManagerPost from "../src/pages/admin/ManagerPost";
+import Page from "./pages/admin/page/Page";
+import User from "./pages/admin/user/User";
+import Post from "./pages/admin/post/Post";
 import Media from "../src/pages/admin/Media";
 // import Login from "../src/components/Login";
 
@@ -29,9 +29,9 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path={PATH.AI} element={<AI />} />
         <Route path={PATH.ANALYTIC} element={<Analytic />} />
-        <Route path={PATH.MANAGER_PAGE} element={<ManagerPage />} />
-        <Route path={PATH.MANAGER_USER} element={<ManagerUser />} />
-        <Route path={PATH.MANAGER_POST} element={<ManagerPost />} />
+        <Route path={PATH.PAGE} element={<Page />} />
+        <Route path={PATH.USER} element={<User />} />
+        <Route path={PATH.POST} element={<Post />} />
         <Route path={PATH.MEDIA} element={<Media />} />
       </Route>
     </Routes>

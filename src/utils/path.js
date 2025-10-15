@@ -10,8 +10,8 @@ export const PATH = {
   DASHBOARD: "/dashboard",
   AI: "/dashboard/ai",
   ANALYTIC: "/dashboard/analytic",
-  MANAGER_USER: "/dashboard/manager_user",
-  MANAGER_PAGE: "/dashboard/manager_page",
+  USER: "/dashboard/user",
+  PAGE: "/dashboard/page",
   MEDIA: "/dashboard/media",
-  MANAGER_POST: "/dashboard/manager_post",
+  POST: "/dashboard/post",
 };
