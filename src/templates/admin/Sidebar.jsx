@@ -27,12 +27,12 @@ const sidebarNavItems = [
     label: "Phân tích",
   },
   {
-    to: PATH.MANAGER_USER,
+    to: PATH.USER,
     icon: <Users size={20} />,
     label: "Quản lý nhân viên",
   },
   {
-    to: PATH.MANAGER_PAGE,
+    to: PATH.PAGE,
     icon: <FileText size={20} />,
     label: "Quản lý page",
   },
@@ -42,7 +42,7 @@ const sidebarNavItems = [
     label: "Media",
   },
   {
-    to: PATH.MANAGER_POST,
+    to: PATH.POST,
     icon: <Image size={20} />,
     label: "Quản lý bài viết",
   },
