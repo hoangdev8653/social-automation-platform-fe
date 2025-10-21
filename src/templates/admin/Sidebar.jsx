@@ -4,7 +4,9 @@ import {
   LayoutDashboard,
   Bot,
   BarChart2,
+  ClipboardList,
   Users,
+  LayoutTemplate,
   FileText,
   Image,
 } from "lucide-react";
@@ -17,7 +19,7 @@ const sidebarNavItems = [
     label: "Dashboard",
   },
   {
-    to: PATH.AI,
+    to: PATH.AI_ADMIN,
     icon: <Bot size={20} />,
     label: "AI",
   },
@@ -43,8 +45,13 @@ const sidebarNavItems = [
   },
   {
     to: PATH.POST,
-    icon: <Image size={20} />,
+    icon: <ClipboardList size={20} />,
     label: "Quản lý bài viết",
+  },
+  {
+    to: PATH.TEMPLATE_ADMIN,
+    icon: <LayoutTemplate size={20} />,
+    label: "Template",
   },
 ];
 

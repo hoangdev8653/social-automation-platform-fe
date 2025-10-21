@@ -28,10 +28,3 @@ export const deleteTemplate = async (id) => {
     url: `template/${id}`,
   });
 };
-
-export const getAllTemplateCategory = async () => {
-  return await axiosConfig({
-    method: "get",
-    url: "template-category",
-  });
-};
