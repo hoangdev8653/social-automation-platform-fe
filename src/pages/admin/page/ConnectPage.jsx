@@ -3,7 +3,7 @@ import React, { useState } from "react";
 const ConnectPage = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     platform: "Facebook",
-    connectMethod: "manual",
+    connectMethod: "oauth",
     pageName: "",
     pageId: "",
     accessToken: "",
@@ -14,32 +14,68 @@ const ConnectPage = ({ onClose, onSuccess }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleOAuthConnect = () => {
+    // Tạo URL backend theo nền tảng
+    const lowerPlatform = formData.platform.toLowerCase();
+    const oauthUrl = `http://localhost:3007/api/v1/${lowerPlatform}`;
+
+    const popup = window.open(oauthUrl, "_blank", "width=800,height=700");
+
+    // Lắng nghe message từ backend
+    const listener = (event) => {
+      if (event.origin !== "http://localhost:3007") return;
+      if (event.data?.type === `${lowerPlatform}_success`) {
+        const { pageName, pageId, accessToken } = event.data;
+        setFormData((prev) => ({
+          ...prev,
+          pageName,
+          pageId,
+          accessToken,
+        }));
+        popup?.close();
+        window.removeEventListener("message", listener);
+        onSuccess();
+        onClose();
+      }
+    };
+
+    window.addEventListener("message", listener);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("ConnectPage.jsx: Gửi dữ liệu page đến API:", formData);
-    // TODO: Thêm logic gọi API để lưu page mới ở đây
-    // Sau khi API trả về thành công:
-    onSuccess(); // Báo cho component cha biết để tải lại danh sách
-    onClose(); // Đóng modal
+    onSuccess();
+    onClose();
   };
+
+  // Tạo tên nền tảng hiển thị thân thiện
+  const platformLabel = {
+    Facebook: "Facebook",
+    Instagram: "Instagram",
+    YouTube: "YouTube",
+    TikTok: "TikTok",
+    X: "Twitter",
+  }[formData.platform];
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      {" "}
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-        {/* Header */}
+        {/* Header */}{" "}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Kết nối Page mới</h2>
+          {" "}
+          <h2 className="text-2xl font-bold">Kết nối Page mới</h2>{" "}
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
           >
-            ×
-          </button>
+            ×{" "}
+          </button>{" "}
         </div>
-
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Chọn nền tảng */}
+          {/* Nền tảng */}
           <div>
             <label className="block text-sm font-medium mb-1">
               Chọn nền tảng
@@ -75,7 +111,6 @@ const ConnectPage = ({ onClose, onSuccess }) => {
                 />
                 <span>OAuth (Khuyến dùng)</span>
               </label>
-
               <label className="flex items-center gap-2">
                 <input
                   type="radio"
@@ -90,47 +125,67 @@ const ConnectPage = ({ onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Tên Page */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Tên Page/Channel
-            </label>
-            <input
-              type="text"
-              name="pageName"
-              value={formData.pageName}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-              placeholder="Nhập tên page..."
-            />
-          </div>
+          {/* Hiển thị phần OAuth động */}
+          {formData.connectMethod === "oauth" && (
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+              <h3 className="font-semibold mb-2">Kết nối OAuth</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Click nút bên dưới để kết nối {platformLabel} của bạn một cách
+                an toàn.
+              </p>
+              <button
+                type="button"
+                onClick={handleOAuthConnect}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer"
+              >
+                🔗 Kết nối với {platformLabel}
+              </button>
+            </div>
+          )}
 
-          {/* Page ID */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Page ID</label>
-            <input
-              type="text"
-              name="pageId"
-              value={formData.pageId}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-              placeholder="Nhập Page ID..."
-            />
-          </div>
-
-          {/* Access Token */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Access Token
-            </label>
-            <textarea
-              name="accessToken"
-              value={formData.accessToken}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 h-24 focus:ring focus:ring-blue-200 resize-none"
-              placeholder="Nhập access token..."
-            />
-          </div>
+          {/* Nhập thủ công */}
+          {formData.connectMethod === "manual" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Tên Page/Channel
+                </label>
+                <input
+                  type="text"
+                  name="pageName"
+                  value={formData.pageName}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
+                  placeholder="Nhập tên page..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Page ID
+                </label>
+                <input
+                  type="text"
+                  name="pageId"
+                  value={formData.pageId}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
+                  placeholder="Nhập Page ID..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Access Token
+                </label>
+                <textarea
+                  name="accessToken"
+                  value={formData.accessToken}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg p-2 h-24 focus:ring focus:ring-blue-200 resize-none"
+                  placeholder="Nhập access token..."
+                />
+              </div>
+            </>
+          )}
 
           {/* Buttons */}
           <div className="flex justify-end gap-3 pt-4">

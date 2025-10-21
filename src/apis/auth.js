@@ -3,7 +3,7 @@ import { axiosConfig } from "../axiosConfig";
 export const register = async (data) => {
   return await axiosConfig({
     method: "post",
-    url: "user/register",
+    url: "auth/register",
     data,
   });
 };
@@ -11,7 +11,7 @@ export const register = async (data) => {
 export const login = async (data) => {
   return await axiosConfig({
     method: "post",
-    url: "user/login",
+    url: "auth/login",
     data,
   });
 };

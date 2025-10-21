@@ -1,10 +1,12 @@
 import * as Yup from "yup";
 
 export const loginValidate = Yup.object().shape({
-  email: Yup.string().email("Invalid email").required("Email is Required"),
+  email: Yup.string()
+    .email("Email không hợp lệ")
+    .required("Email là trường bắt buộc"),
   password: Yup.string()
-    .min(6, "Password at least 6 character ")
-    .required("Password is Required"),
+    .min(6, "Mật khẩu phải có ít nhất 6 ký tự")
+    .required("Mật khẩu là trường bắt buộc"),
 });
 const phoneRegExp =
   /^((\\+[1-9]{1,4}[ \\-]*)|(\\([0-9]{2,3}\\)[ \\-]*)|([0-9]{2,4})[ \\-]*)*?[0-9]{3,4}?[ \\-]*[0-9]{3,4}?$/;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Users,
   UserPlus,
@@ -13,47 +13,21 @@ import {
 } from "lucide-react";
 import AddUser from "./AddUser";
 import UpdateUser from "./UpdateUser";
-
-const employeesData = [
-  {
-    id: "EMP001",
-    name: "Super Admin",
-    username: "@superadmin",
-    email: "superadmin@techcorp.com",
-    role: "Super Admin",
-    permissions: ["all"],
-    status: "Hoạt động",
-    createdAt: "07:00:00 1/1/2024",
-    avatar: "https://i.pravatar.cc/50?img=1",
-  },
-  {
-    id: "EMP002",
-    name: "Nguyễn Văn Minh",
-    username: "@admin",
-    email: "minh.nguyen@techcorp.com",
-    role: "Admin",
-    permissions: ["posts", "videos", "pages", "+2"],
-    status: "Hoạt động",
-    createdAt: "07:00:00 2/1/2024",
-    avatar: "https://i.pravatar.cc/50?img=2",
-  },
-  {
-    id: "EMP003",
-    name: "Trần Thị Hương",
-    username: "@editor01",
-    email: "huong.tran@techcorp.com",
-    role: "Content Editor",
-    permissions: ["posts", "videos", "templates"],
-    status: "Hoạt động",
-    createdAt: "07:00:00 3/1/2024",
-    avatar: "https://i.pravatar.cc/50?img=3",
-  },
-];
+import { userStore } from "../../../store/user";
 
 export default function User() {
-  const [employees] = useState(employeesData);
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const user = userStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await user.getAllUser();
+    };
+    fetchData();
+  }, []);
+
+  console.log("user.users", user.data);
 
   const handleResetPassword = async (id) => {
     alert("Bạn chắc chắn muốn reset password chứ!");
@@ -102,7 +76,9 @@ export default function User() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Tổng nhân viên</p>
-              <h2 className="text-2xl font-bold">8</h2>
+              <h2 className="text-2xl font-bold">
+                {user.data?.data?.length || 0}
+              </h2>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
@@ -111,7 +87,9 @@ export default function User() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Đang hoạt động</p>
-              <h2 className="text-2xl font-bold">7</h2>
+              <h2 className="text-2xl font-bold">
+                {user.data?.data?.length || 0}
+              </h2>
             </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
@@ -142,109 +120,102 @@ export default function User() {
         <select className="border rounded-lg px-3 py-2 bg-white border-gray-100">
           <option>Tất cả vai trò</option>
           <option>Admin</option>
-          <option>Editor</option>
-        </select>
-        <select className="border rounded-lg px-3 py-2 bg-white border-gray-100">
-          <option>Tất cả trạng thái</option>
-          <option>Hoạt động</option>
-          <option>Không hoạt động</option>
+          <option>User</option>
         </select>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto mt-4">
         <table className="w-full text-left">
           <thead className="bg-gray-50 border-gray-100 text-gray-600 uppercase text-xs font-semibold">
             <tr>
               <th className="p-4">Nhân viên</th>
               <th className="p-4">Vai trò</th>
-              <th className="p-4">Quyền hạn</th>
+              <th className="p-4">Email</th>
               <th className="p-4">Trạng thái</th>
-              <th className="p-4">Ngày tạo</th>
               <th className="p-4 text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody className="text-sm">
-            {employees.map((emp) => (
-              <tr
-                key={emp.id}
-                className="border-t border-gray-100 hover:bg-gray-50"
-              >
-                <td className="p-4 flex items-center gap-3">
-                  <img
-                    src={emp.avatar}
-                    alt=""
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="font-semibold">{emp.name}</p>
-                    <p className="text-sm text-gray-500">
-                      {emp.username} • {emp.id}
-                    </p>
-                    <p className="text-sm text-gray-500">{emp.email}</p>
-                  </div>
-                </td>
-                <td className="p-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      emp.role === "Super Admin"
-                        ? "bg-red-100 text-red-700"
-                        : emp.role === "Admin"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {emp.role}
-                  </span>
-                </td>
-                <td className="p-4 text-sm text-gray-600">
-                  {emp.permissions.map((p, i) => (
+            {user?.data?.data && user?.data?.data?.length > 0 ? (
+              user.data.data.map((emp) => (
+                <tr
+                  key={emp.id}
+                  className="border-t border-gray-100 hover:bg-gray-50"
+                >
+                  <td className="p-4 flex items-center gap-3">
+                    <img
+                      src={`https://i.pravatar.cc/50?u=${emp.email}`}
+                      alt={emp.name}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <p className="font-semibold">{emp.name}</p>
+                      <p className="text-sm text-gray-500">{emp.email}</p>
+                    </div>
+                  </td>
+                  <td className="p-4">
                     <span
-                      key={i}
-                      className="bg-gray-100 text-gray-700 px-2 py-1 rounded mr-1 mb-1 inline-block"
+                      className={`px-3 py-1 rounded-full text-sm ${
+                        emp.role === "admin"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
                     >
-                      {p}
+                      {emp.role}
                     </span>
-                  ))}
-                </td>
-                <td className="p-4">
-                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                    {emp.status}
-                  </span>
-                </td>
-                <td className="p-4 text-gray-600">{emp.createdAt}</td>
-                <td className="p-4 text-center">
-                  <button
-                    onClick={() => setEditingUser(emp)}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <Edit size={16} className="text-blue-600" />
-                  </button>
-                  <button
-                    onClick={() => handleResetPassword(emp.id)}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <KeyRound size={16} className="text-yellow-600" />
-                  </button>
-                  <button
-                    onClick={() => handleLockAccount(emp.id)}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <Lock size={16} className="text-gray-600" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteAccount(emp.id)}
-                    className="p-2 hover:bg-gray-100 rounded-full"
-                  >
-                    <Trash2 size={16} className="text-red-600" />
-                  </button>
+                  </td>
+                  <td className="p-4 text-gray-600">{emp.email}</td>
+                  <td className="p-4 text-gray-600">
+                    {emp?.status === "active"
+                      ? "Hoạt động"
+                      : emp?.status === "blocked"
+                      ? "Tạm khóa"
+                      : emp?.status}
+                  </td>
+                  <td className="p-4 text-center">
+                    <button
+                      onClick={() => setEditingUser(emp)}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <Edit size={16} className="text-blue-600" />
+                    </button>
+                    <button
+                      onClick={() => handleResetPassword(emp.id)}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <KeyRound size={16} className="text-yellow-600" />
+                    </button>
+                    <button
+                      onClick={() => handleLockAccount(emp.id)}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <Lock size={16} className="text-gray-600" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAccount(emp.id)}
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                    >
+                      <Trash2 size={16} className="text-red-600" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan="5"
+                  className="text-center text-gray-500 py-6 italic"
+                >
+                  Không có dữ liệu người dùng
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* Modals */}
       {isAddUserOpen && <AddUser onClose={() => setIsAddUserOpen(false)} />}
       {editingUser && (
         <UpdateUser
