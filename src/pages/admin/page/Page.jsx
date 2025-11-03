@@ -1,118 +1,54 @@
-import React, { useState } from "react";
-import {
-  Facebook,
-  Instagram,
-  Youtube,
-  Twitter,
-  Plus,
-  RefreshCw,
-  Settings,
-  Trash2,
-  Search,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Plus, RefreshCw, Settings, Trash2, Search } from "lucide-react";
 import ConnectPage from "./ConnectPage";
-
-const TikTokIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12.52.02c1.31-.02 2.61.1 3.88.34 1.27.24 2.5.62 3.68 1.14 1.18.52 2.3 1.18 3.28 1.98.98.8 1.82 1.74 2.52 2.78.7 1.04 1.26 2.18 1.68 3.4.42 1.22.7 2.5.84 3.86.14 1.36.16 2.78.02 4.24-.14 1.46-.42 2.88-.84 4.24-.42 1.32-.98 2.58-1.68 3.74-.7 1.16-1.54 2.22-2.52 3.1-.98.88-2.1 1.64-3.28 2.26-1.18.62-2.42 1.12-3.68 1.5-1.27.38-2.58.64-3.88.78-1.3.14-2.62.16-3.98.02-1.36-.14-2.7-.38-3.98-.78-1.28-.4-2.52-.9-3.68-1.5-1.18-.62-2.3-1.36-3.28-2.26-.98-.9-1.82-1.92-2.52-3.1-.7-1.18-1.26-2.42-1.68-3.74-.42-1.36-.7-2.78-.84-4.24-.14-1.46-.16-2.92.02-4.38.14-1.46.42-2.9.84-4.24.42-1.34.98-2.6 1.68-3.76.7-1.16 1.54-2.24 2.52-3.12.98-.88 2.1-1.64 3.28-2.26 1.18-.62 2.42-1.12 3.68-1.5C9.82.12 11.22.02 12.52.02z"></path>
-    <path d="M12 7.35c-1.32 0-2.5.52-3.4 1.4-1.8 1.8-1.8 4.7 0 6.5 1.8 1.8 4.7 1.8 6.5 0 .4-.4.7-.8.9-1.3"></path>
-    <path d="M12 7.35v5.3"></path>
-    <path d="M15.3 12.65c-.4.4-.9.7-1.4.9"></path>
-  </svg>
-);
-
-const platformStats = [
-  {
-    name: "Facebook",
-    icon: <Facebook className="text-blue-600" />,
-    count: 1,
-  },
-  {
-    name: "Instagram",
-    icon: <Instagram className="text-pink-500" />,
-    count: 1,
-  },
-  { name: "TikTok", icon: <TikTokIcon className="text-black" />, count: 1 },
-  { name: "YouTube", icon: <Youtube className="text-red-500" />, count: 1 },
-  { name: "Twitter", icon: <Twitter className="text-sky-500" />, count: 1 },
-];
-
-const pagesData = [
-  {
-    id: "123456789",
-    name: "Công ty ABC - Fanpage",
-    platform: "Facebook",
-    username: "@abcpage",
-    followers: 15420,
-    lastSync: "15/1/2024",
-    connected: true,
-    avatar: "https://i.pravatar.cc/100?img=5",
-  },
-  {
-    id: "@demochannel",
-    name: "Demo TikTok Channel",
-    platform: "TikTok",
-    username: "@demochannel",
-    followers: 8750,
-    lastSync: "15/1/2024",
-    connected: true,
-    avatar: "https://i.pravatar.cc/100?img=8",
-  },
-  {
-    id: "@techcorp_official",
-    name: "Instagram Business",
-    platform: "Instagram",
-    username: "@techcorp_official",
-    followers: 12350,
-    lastSync: "15/1/2024",
-    connected: true,
-    avatar: "https://i.pravatar.cc/100?img=6",
-  },
-  {
-    id: "@ytchannel",
-    name: "YouTube Channel",
-    platform: "YouTube",
-    username: "@ytchannel",
-    followers: 21800,
-    lastSync: "15/1/2024",
-    connected: true,
-    avatar: "https://i.pravatar.cc/100?img=10",
-  },
-  {
-    id: "@twitterbiz",
-    name: "Twitter Business",
-    platform: "Twitter",
-    username: "@twitterbiz",
-    followers: 5620,
-    lastSync: "15/1/2024",
-    connected: true,
-    avatar: "https://i.pravatar.cc/100?img=12",
-  },
-];
+import { socialAccountStore } from "../../../store/socialAccount";
+import formatDate from "../../../utils/formatData";
+import facebook from "../../../assets/facebook.png";
+import instagram from "../../../assets/instagram.png";
+import tiktok from "../../../assets/tiktok.png";
+import twitter from "../../../assets/twitter.png";
+import youtube from "../../../assets/youtube.png";
+import AvatarFanpage from "../../../components/AvatarFanpage";
 
 export default function Page() {
-  const [pages] = useState(pagesData);
   const [isConnectPageOpen, setIsConnectPageOpen] = useState(false);
+  const socialAccount = socialAccountStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await socialAccount.getAllSocialAccount();
+    };
+    fetchData();
+  }, []);
 
   const handleConnectSuccess = () => {
     console.log("Page.jsx: Kết nối thành công! Tải lại danh sách page...");
-    // TODO: Thêm logic để tải lại danh sách page từ API
     setIsConnectPageOpen(false);
   };
 
+  const handleCountPageFacebook = socialAccount?.data?.content?.filter(
+    (page) => page.platform.name === "Facebook"
+  ).length;
+
+  const handleCountPageInstagram = socialAccount?.data?.content?.filter(
+    (page) => page.platform.name === "Instagram"
+  ).length;
+
+  const handleCountPageTikTok = socialAccount?.data?.content?.filter(
+    (page) => page.platform.name === "TikTok"
+  ).length;
+
+  const handleCountPageYouTube = socialAccount?.data?.content?.filter(
+    (page) => page.platform.name === "Youtube"
+  ).length;
+
+  const handleCountPageTwitter = socialAccount?.data?.content?.filter(
+    (page) => page.platform.name === "X" // Giả định tên nền tảng cho Twitter là "X"
+  ).length;
+
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-16">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Quản lý Page</h1>
@@ -126,22 +62,50 @@ export default function Page() {
 
         {/* Platform Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-          {platformStats.map((p, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl shadow-sm border p-5 flex items-center gap-4"
-            >
-              <div className="text-3xl">{p.icon}</div>
-              <div>
-                <h3 className="font-bold text-xl">{p.count}</h3>
-                <p className="text-sm text-gray-500">{p.name}</p>
-              </div>
+          {/* Facebook */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100   p-5 flex items-center gap-4">
+            <img src={facebook} alt="Facebook" className="w-10 h-10" />
+            <div className="flex flex-col">
+              <h3 className="font-bold text-xl">{handleCountPageFacebook}</h3>
+              <p className="text-sm text-gray-500">Facebook</p>
             </div>
-          ))}
+          </div>
+          {/* Instagram */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+            <img src={instagram} alt="Instagram" className="w-10 h-10" />
+            <div className="flex flex-col">
+              <h3 className="font-bold text-xl">{handleCountPageInstagram}</h3>
+              <p className="text-sm text-gray-500">Instagram</p>
+            </div>
+          </div>
+          {/* TikTok */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+            <img src={tiktok} alt="TikTok" className="w-10 h-10" />
+            <div className="flex flex-col">
+              <h3 className="font-bold text-xl">{handleCountPageTikTok}</h3>
+              <p className="text-sm text-gray-500">TikTok</p>
+            </div>
+          </div>
+          {/* YouTube */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+            <img src={youtube} alt="YouTube" className="w-10 h-10" />
+            <div className="flex flex-col">
+              <h3 className="font-bold text-xl">{handleCountPageYouTube}</h3>
+              <p className="text-sm text-gray-500">YouTube</p>
+            </div>
+          </div>
+          {/* Twitter */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+            <img src={twitter} alt="Twitter" className="w-10 h-10" />
+            <div className="flex flex-col">
+              <h3 className="font-bold text-xl">{handleCountPageTwitter}</h3>
+              <p className="text-sm text-gray-500">Twitter</p>
+            </div>
+          </div>
         </div>
 
         {/* Filter */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border flex flex-wrap items-center gap-3">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -150,10 +114,10 @@ export default function Page() {
             <input
               type="text"
               placeholder="Tìm kiếm page..."
-              className="border rounded-lg px-3 py-2 pl-10 w-full focus:ring-2 focus:ring-blue-200 outline-none"
+              className="border border-gray-200 rounded-lg px-3 py-2 pl-10 w-full focus:ring-2 focus:ring-blue-200 outline-none"
             />
           </div>
-          <select className="border rounded-lg px-3 py-2 bg-white">
+          <select className="border border-gray-200 rounded-lg px-3 py-2 bg-white">
             <option>Tất cả nền tảng</option>
             <option>Facebook</option>
             <option>Instagram</option>
@@ -161,7 +125,7 @@ export default function Page() {
             <option>YouTube</option>
             <option>Twitter</option>
           </select>
-          <select className="border rounded-lg px-3 py-2 bg-white">
+          <select className="border border-gray-200 rounded-lg px-3 py-2 bg-white">
             <option>Tất cả trạng thái</option>
             <option>Kết nối</option>
             <option>Ngắt kết nối</option>
@@ -170,47 +134,60 @@ export default function Page() {
 
         {/* Page List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {pages.map((page, index) => (
+          {socialAccount?.data?.content?.map((page, index) => (
             <div
               key={index}
-              className="bg-white p-5 rounded-xl shadow-sm border flex flex-col"
+              className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col"
             >
               <div className="flex items-center gap-4 mb-4">
-                <img
-                  src={page.avatar}
-                  alt={page.name}
-                  className="w-16 h-16 rounded-full object-cover border"
-                />
+                {/* <img
+                  // src={
+                  //   page.account_image
+                  //     ? page.account_image
+                  //     : `https://graph.facebook.com/${page.account_id}/picture?access_token=${page.access_token}`
+                  // }
+                  src={
+                    page.platform === "facebook" ||
+                    /^[0-9]+$/.test(page.account_id)
+                      ? `https://graph.facebook.com/${page.account_id}/picture?type=large`
+                      : page.account_image
+                  }
+                  alt={page.account_name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    // fallback cuối cùng khi ảnh facebook lỗi
+                    e.target.src = page.account_image || "/default-avatar.png";
+                  }}
+                  className="w-16 h-16 rounded-full object-cover border border-gray-100"
+                /> */}
+                <AvatarFanpage page={page} />
                 <div className="flex items-center gap-3">
                   <div>
-                    <h3 className="font-bold text-base">{page.name}</h3>
+                    <h3 className="font-bold text-base">{page.account_name}</h3>
+                    <img
+                      className="w-6 h-6 my-1"
+                      src={page.platform.image}
+                      alt={page.platform.id}
+                    />
                     <p className="text-sm text-gray-500">
-                      {page.platform} • {page.username}
+                      ID: {page.account_id}
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
-                <div>
+              <div className=" justify-between text-sm text-gray-600 mb-4">
+                <div className="flex justify-between my-2">
                   <p className="text-gray-500">Followers</p>
-                  <p className="font-semibold">
-                    {page.followers.toLocaleString("vi-VN")}
-                  </p>
+                  <p className="font-semibold">{page.fan_counts || 0} </p>
                 </div>
-                <div>
+                <div className="flex justify-between my-2">
                   <p className="text-gray-500">Đồng bộ cuối</p>
-                  <p className="font-semibold">{page.lastSync}</p>
+                  <p className="font-semibold">{formatDate(page.updatedAt)}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between mt-auto pt-4 border-t">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    page.connected
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {page.connected ? "Đã kết nối" : "Đã ngắt"}
+              <div className="flex items-center justify-between mt-auto pt-4 ">
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                  {"Đã kết nối"}
                 </span>
                 <div className="flex gap-1">
                   <button className="p-2 hover:bg-gray-100 rounded-full">

@@ -30,6 +30,20 @@ export const changePassword = async (data) => {
   });
 };
 
+export const resetPassword = async (id) => {
+  return await axiosConfig({
+    method: "put",
+    url: `user/reset-password/${id}`,
+  });
+};
+
+export const lockAccount = async (id) => {
+  return await axiosConfig({
+    method: "put",
+    url: `user/lock-account/${id}`,
+  });
+};
+
 export const deleteUserById = async (id) => {
   return await axiosConfig({
     method: "delete",

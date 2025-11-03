@@ -5,6 +5,8 @@ import {
   getAllUser,
   getUserById,
   updateUserById,
+  lockAccount,
+  resetPassword,
 } from "../apis/user";
 
 export const userStore = create((set, get) => ({
@@ -47,22 +49,46 @@ export const userStore = create((set, get) => ({
     }
   },
 
-  deleteUserById: async (id) => {
+  changePassword: async (id, passwordData) => {
     try {
       set({ loading: true, error: null });
-      await deleteUserById(id);
-      await get().getAllUser(); // Tải lại danh sách người dùng sau khi xóa
+      await changePassword(id, passwordData);
+      set({ loading: false });
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });
     }
   },
 
-  changePassword: async (id, passwordData) => {
+  resetPassword: async (id) => {
     try {
       set({ loading: true, error: null });
-      await changePassword(id, passwordData);
+      const response = await resetPassword(id);
       set({ loading: false });
+      return response;
+    } catch (error) {
+      console.log(error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  lockAccount: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      const response = await lockAccount(id);
+      set({ loading: false });
+      return response;
+    } catch (error) {
+      console.log(error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  deleteUserById: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      await deleteUserById(id);
+      await get().getAllUser(); // Tải lại danh sách người dùng sau khi xóa
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

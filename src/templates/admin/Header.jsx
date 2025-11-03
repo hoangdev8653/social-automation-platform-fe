@@ -5,16 +5,6 @@ import Notification from "../../components/Notification";
 import { getLocalStorage } from "../../utils/localStorage";
 import { authStore } from "../../store/auth";
 import { useNavigate } from "react-router-dom";
-const navItems = [
-  { to: PATH.USER_LAYOUT, icon: <Home size={18} />, label: "Trang chủ" },
-  {
-    to: PATH.CREATE_POST,
-    icon: <PlusSquare size={18} />,
-    label: "Tạo bài đăng",
-  },
-  { to: PATH.AI_USER, icon: <Bot size={18} />, label: "AI" },
-  { to: PATH.TEMPLATE_USER, icon: <LayoutTemplate size={18} />, label: "Mẫu" },
-];
 
 const Header = () => {
   const user = getLocalStorage("user");
@@ -39,25 +29,6 @@ const Header = () => {
           </NavLink>
 
           {/* Center - Nav */}
-          <nav className="hidden md:flex items-center gap-2">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.label}
-                to={item.to}
-                end={item.to === PATH.USER_LAYOUT}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  }`
-                }
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
 
           <div className="flex items-center space-x-4">
             {/* Notification */}

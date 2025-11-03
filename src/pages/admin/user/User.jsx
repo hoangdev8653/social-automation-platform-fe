@@ -14,10 +14,23 @@ import {
 import AddUser from "./AddUser";
 import UpdateUser from "./UpdateUser";
 import { userStore } from "../../../store/user";
+import ConfirmationModal from "../../../components/ConfirmationModal";
+import { toast } from "react-toastify";
 
 export default function User() {
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+    confirmText: "Xác nhận",
+    confirmButtonClass: "bg-red-600 hover:bg-red-700",
+  });
+
   const user = userStore();
 
   useEffect(() => {
@@ -27,23 +40,77 @@ export default function User() {
     fetchData();
   }, []);
 
-  console.log("user.users", user.data);
+  // Lọc và tìm kiếm người dùng
+  const filteredUsers = user.data?.data?.filter((emp) => {
+    const matchesRole =
+      roleFilter === "all" ||
+      emp.role?.toLowerCase() === roleFilter.toLowerCase();
+
+    const matchesSearch =
+      !searchTerm ||
+      emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    return matchesRole && matchesSearch;
+  });
 
   const handleResetPassword = async (id) => {
-    alert("Bạn chắc chắn muốn reset password chứ!");
+    setConfirmation({
+      isOpen: true,
+      title: "Xác nhận Đặt lại Mật khẩu",
+      message:
+        "Bạn có chắc chắn muốn đặt lại mật khẩu cho tài khoản này không? Mật khẩu mới sẽ là '123456'.",
+      onConfirm: async () => {
+        const response = await user.resetPassword(id);
+        if (response.status == 200) {
+          toast.success("Đặt lại mật khẩu thành công! Mật khẩu mới là: 123456");
+        }
+        closeConfirmation();
+      },
+      confirmText: "Đặt lại",
+      confirmButtonClass: "bg-yellow-500 hover:bg-yellow-600",
+    });
   };
 
   const handleLockAccount = async (id) => {
-    alert("Bạn chắc chắn muốn khóa tài khoản chứ!");
+    setConfirmation({
+      isOpen: true,
+      title: "Xác nhận Khóa/Mở khóa",
+      message: "Bạn có chắc chắn muốn thay đổi trạng thái tài khoản này không?",
+      onConfirm: async () => {
+        const response = await user.lockAccount(id);
+        if (response.status == 200) {
+          toast.success("Bạn đã thay đổi trạng thái tài khoản thành công!");
+          await user.getAllUser(); // Tải lại dữ liệu thay vì reload trang
+        }
+        closeConfirmation();
+      },
+      confirmText: "Xác nhận",
+      confirmButtonClass: "bg-gray-500 hover:bg-gray-600",
+    });
   };
 
   const handleDeleteAccount = async (id) => {
-    alert("Bạn chắc chắn muốn xóa tài khoản chứ!");
+    setConfirmation({
+      isOpen: true,
+      title: "Xác nhận Xóa Tài khoản",
+      message:
+        "Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa tài khoản này không?",
+      onConfirm: async () => {
+        await user.deleteUserById(id);
+        closeConfirmation();
+      },
+      confirmText: "Xóa",
+      confirmButtonClass: "bg-red-600 hover:bg-red-700",
+    });
   };
+
+  const closeConfirmation = () =>
+    setConfirmation({ ...confirmation, isOpen: false });
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-16">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
@@ -88,7 +155,8 @@ export default function User() {
             <div>
               <p className="text-sm text-gray-500">Đang hoạt động</p>
               <h2 className="text-2xl font-bold">
-                {user.data?.data?.length || 0}
+                {user.data?.data?.filter((user) => user.status === "active")
+                  .length || 0}
               </h2>
             </div>
           </div>
@@ -114,13 +182,19 @@ export default function User() {
           <input
             type="text"
             placeholder="Tìm kiếm nhân viên..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="border border-gray-200 rounded-lg  px-3 py-2 pl-10 w-full focus:ring-2 focus:ring-blue-200 outline-none"
           />
         </div>
-        <select className="border rounded-lg px-3 py-2 bg-white border-gray-100">
-          <option>Tất cả vai trò</option>
-          <option>Admin</option>
-          <option>User</option>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="border rounded-lg px-3 py-2 bg-white border-gray-100"
+        >
+          <option value="all">Tất cả vai trò</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
         </select>
       </div>
 
@@ -137,8 +211,8 @@ export default function User() {
             </tr>
           </thead>
           <tbody className="text-sm">
-            {user?.data?.data && user?.data?.data?.length > 0 ? (
-              user.data.data.map((emp) => (
+            {filteredUsers && filteredUsers.length > 0 ? (
+              filteredUsers.map((emp) => (
                 <tr
                   key={emp.id}
                   className="border-t border-gray-100 hover:bg-gray-50"
@@ -166,12 +240,22 @@ export default function User() {
                     </span>
                   </td>
                   <td className="p-4 text-gray-600">{emp.email}</td>
-                  <td className="p-4 text-gray-600">
-                    {emp?.status === "active"
-                      ? "Hoạt động"
-                      : emp?.status === "blocked"
-                      ? "Tạm khóa"
-                      : emp?.status}
+                  <td className="p-4">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        emp.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : emp.status === "blocked"
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {emp?.status === "active"
+                        ? "Hoạt động"
+                        : emp?.status === "blocked"
+                        ? "Tạm khóa"
+                        : emp?.status}
+                    </span>
                   </td>
                   <td className="p-4 text-center">
                     <button
@@ -227,6 +311,15 @@ export default function User() {
           }}
         />
       )}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        title={confirmation.title}
+        message={confirmation.message}
+        onConfirm={confirmation.onConfirm}
+        onClose={closeConfirmation}
+        confirmText={confirmation.confirmText}
+        confirmButtonClass={confirmation.confirmButtonClass}
+      />
     </>
   );
 }

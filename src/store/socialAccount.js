@@ -17,6 +17,7 @@ export const socialAccountStore = create((set, get) => ({
       set({ loading: true, error: null });
       const response = await getAllSocialAccount();
       set({ data: response.data, loading: false });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

@@ -48,7 +48,7 @@ const Post = () => {
   };
 
   return (
-    <div className=" bg-gray-50 min-h-screen">
+    <div className=" bg-gray-50 mt-16">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Quản lý bài đăng</h1>

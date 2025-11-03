@@ -35,7 +35,7 @@ axiosConfig.interceptors.response.use(
           return Promise.reject(error);
         }
         const response = await axios.post(
-          "http://localhost:3007/user/refresh-token",
+          `${BASE_URL_LOCAL}/auth/refresh-token`,
           {
             refreshToken,
           }

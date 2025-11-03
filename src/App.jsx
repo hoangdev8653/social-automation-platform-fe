@@ -15,7 +15,7 @@ import Page from "./pages/admin/page/Page";
 import User from "./pages/admin/user/User";
 import Post from "./pages/admin/post/Post";
 import Media from "../src/pages/admin/Media";
-import TemplateAdmin from "../src/pages/admin/Template";
+import TemplateAdmin from "../src/pages/admin/template/Template";
 import Login from "./pages/Login";
 
 import ProtectedRoute from "../src/templates/ProtectedRoute.jsx";

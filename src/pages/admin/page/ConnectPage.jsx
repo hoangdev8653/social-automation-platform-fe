@@ -17,25 +17,70 @@ const ConnectPage = ({ onClose, onSuccess }) => {
   const handleOAuthConnect = () => {
     // Tạo URL backend theo nền tảng
     const lowerPlatform = formData.platform.toLowerCase();
-    const oauthUrl = `http://localhost:3007/api/v1/${lowerPlatform}`;
+    const oauthUrl = `https://localhost:3007/api/v1/${lowerPlatform}`;
 
     const popup = window.open(oauthUrl, "_blank", "width=800,height=700");
 
     // Lắng nghe message từ backend
+    // const listener = (event) => {
+    //   if (event.origin !== "https://localhost:3007") return;
+    //   if (event.data?.type === `${lowerPlatform}_success`) {
+    //     const { pageName, pageId, accessToken } = event.data;
+    //     setFormData((prev) => ({
+    //       ...prev,
+    //       pageName,
+    //       pageId,
+    //       accessToken,
+    //     }));
+    //     popup?.close();
+    //     window.removeEventListener("message", listener);
+    //     onSuccess();
+    //     onClose();
+    //   }
+    // };
+
+    // ConnectPage.jsx - Đoạn code listener được sửa lại
+
     const listener = (event) => {
-      if (event.origin !== "http://localhost:3007") return;
-      if (event.data?.type === `${lowerPlatform}_success`) {
-        const { pageName, pageId, accessToken } = event.data;
+      // Kiểm tra an toàn: nguồn gốc và loại message
+      if (
+        event.origin !== "https://localhost:3007" ||
+        event.data?.type !== "oauth_success"
+      ) {
+        return;
+      }
+
+      const { pages } = event.data;
+
+      // Kiểm tra xem có page nào được trả về không
+      if (pages && pages.length > 0) {
+        // Tạm thời chọn page đầu tiên trong danh sách
+        const firstPage = pages[0];
+
+        console.log("Đã nhận được dữ liệu từ popup:", firstPage);
+
+        // Cập nhật state của form với thông tin của page đã chọn
         setFormData((prev) => ({
           ...prev,
-          pageName,
-          pageId,
-          accessToken,
+          pageName: firstPage.name,
+          pageId: firstPage.id,
+          accessToken: firstPage.access_token, // Lấy page access token
         }));
+
+        // Đóng popup và dọn dẹp
         popup?.close();
         window.removeEventListener("message", listener);
-        onSuccess();
-        onClose();
+
+        // Hiển thị thông báo thành công và đóng modal
+        // Bạn có thể muốn hiển thị một modal chọn page ở đây thay vì đóng ngay
+        alert(`Đã kết nối với trang: ${firstPage.name}`);
+        // onSuccess(); // Có thể gọi sau khi người dùng submit form cuối cùng
+        // onClose();
+      } else {
+        // Xử lý trường hợp người dùng không có page nào
+        alert("Không tìm thấy trang Facebook nào để kết nối.");
+        popup?.close();
+        window.removeEventListener("message", listener);
       }
     };
 
