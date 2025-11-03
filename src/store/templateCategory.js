@@ -16,7 +16,9 @@ export const templateCategoryStore = create((set, get) => ({
     try {
       set({ loading: true, error: null });
       const response = await getAllTemplateCategory();
+
       set({ data: response.data, loading: false });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

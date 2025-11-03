@@ -9,9 +9,11 @@ import tiktok from "../../../assets/tiktok.png";
 import twitter from "../../../assets/twitter.png";
 import youtube from "../../../assets/youtube.png";
 import AvatarFanpage from "../../../components/AvatarFanpage";
+import getPlatformUrl from "../../../utils/getPlatformUrl";
 
 export default function Page() {
   const [isConnectPageOpen, setIsConnectPageOpen] = useState(false);
+  const [selectedPlatform, setSelectedPlatform] = useState("Tất cả nền tảng");
   const socialAccount = socialAccountStore();
 
   useEffect(() => {
@@ -43,8 +45,15 @@ export default function Page() {
   ).length;
 
   const handleCountPageTwitter = socialAccount?.data?.content?.filter(
-    (page) => page.platform.name === "X" // Giả định tên nền tảng cho Twitter là "X"
+    (page) => page.platform.name === "Twitter"
   ).length;
+
+  const filteredPages = socialAccount?.data?.content?.filter((page) => {
+    if (selectedPlatform === "Tất cả nền tảng") {
+      return true;
+    }
+    return page.platform.name === selectedPlatform;
+  });
 
   return (
     <>
@@ -117,13 +126,18 @@ export default function Page() {
               className="border border-gray-200 rounded-lg px-3 py-2 pl-10 w-full focus:ring-2 focus:ring-blue-200 outline-none"
             />
           </div>
-          <select className="border border-gray-200 rounded-lg px-3 py-2 bg-white">
-            <option>Tất cả nền tảng</option>
-            <option>Facebook</option>
-            <option>Instagram</option>
-            <option>TikTok</option>
-            <option>YouTube</option>
-            <option>Twitter</option>
+          <select
+            value={selectedPlatform}
+            onChange={(e) => setSelectedPlatform(e.target.value)}
+            className="border border-gray-200 rounded-lg px-3 py-2 bg-white"
+          >
+            <option value="Tất cả nền tảng">Tất cả nền tảng</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Instagram">Instagram</option>
+            <option value="TikTok">TikTok</option>
+            {/* Giá trị "Youtube" khớp với dữ liệu từ API */}
+            <option value="Youtube">YouTube</option>
+            <option value="Twitter">Twitter</option>
           </select>
           <select className="border border-gray-200 rounded-lg px-3 py-2 bg-white">
             <option>Tất cả trạng thái</option>
@@ -134,7 +148,7 @@ export default function Page() {
 
         {/* Page List */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {socialAccount?.data?.content?.map((page, index) => (
+          {filteredPages?.map((page, index) => (
             <div
               key={index}
               className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col"
@@ -186,16 +200,22 @@ export default function Page() {
                 </div>
               </div>
               <div className="flex items-center justify-between mt-auto pt-4 ">
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                  {"Đã kết nối"}
-                </span>
+                <a
+                  href={getPlatformUrl(
+                    page.platform.name,
+                    page.account_id,
+                    page.account_name
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 text-sm underline"
+                >
+                  Xem trang
+                </a>
                 <div className="flex gap-1">
-                  <button className="p-2 hover:bg-gray-100 rounded-full">
-                    <RefreshCw size={16} className="text-blue-600" />
-                  </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-full">
-                    <Settings size={16} className="text-gray-600" />
-                  </button>
+                  <span className="px-3 py-2 rounded-full text-xs font-medium bg-green-100 text-green-700 text-center ">
+                    Đã kết nối
+                  </span>
                   <button className="p-2 hover:bg-gray-100 rounded-full">
                     <Trash2 size={16} className="text-red-600" />
                   </button>

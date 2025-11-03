@@ -26,8 +26,6 @@ export default function Template() {
     const fetchData = async () => {
       try {
         await template.getAllTemplate();
-        const cats = await template.getAllCategory();
-        setCategories(cats || []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
@@ -249,7 +247,7 @@ export default function Template() {
       {editingTemplate && (
         <UpdateTemplate
           template={editingTemplate}
-          categories={categories}
+          // categories={categories}
           onClose={() => setEditingTemplate(null)}
           onSuccess={handleCloseUpdateModal}
         />

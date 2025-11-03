@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Save } from "lucide-react";
 import { toast } from "react-toastify";
 import { templateStore } from "../../../store/template";
+import { templateCategoryStore } from "../../../store/templateCategory";
 
 export default function CreateTemplate({ open, onClose, type }) {
   const [form, setForm] = useState({
@@ -12,6 +13,7 @@ export default function CreateTemplate({ open, onClose, type }) {
   });
   const [categories, setCategories] = useState([]);
   const template = templateStore();
+  const templateCategory = templateCategoryStore();
 
   useEffect(() => {
     if (type) {
@@ -24,8 +26,8 @@ export default function CreateTemplate({ open, onClose, type }) {
     if (open) {
       const fetchCategory = async () => {
         try {
-          const res = await template.getAllCategory();
-          setCategories(res || []);
+          const res = await templateCategory.getAllTemplateCategory();
+          setCategories(res?.data?.content || []);
         } catch (error) {
           console.error(error);
         }
@@ -46,11 +48,13 @@ export default function CreateTemplate({ open, onClose, type }) {
       return;
     }
     try {
-      await template.createTemplate(form);
-      toast.success("Thêm template thành công!");
-      onClose();
-      setForm({ title: "", category_id: "", content: "", type: "caption" });
-      await template.getAllTemplate(); // refresh danh sách
+      console.log(form);
+
+      // await template.createTemplate(form);
+      // toast.success("Thêm template thành công!");
+      // onClose();
+      // setForm({ title: "", category_id: "", content: "", type: "caption" });
+      // await template.getAllTemplate(); // refresh danh sách
     } catch (err) {
       toast.error("Không thể thêm template!");
       console.error(err);
@@ -103,9 +107,9 @@ export default function CreateTemplate({ open, onClose, type }) {
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="">Chọn danh mục...</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
+              {categories.map((item, index) => (
+                <option key={index} value={item.id}>
+                  {item.name}
                 </option>
               ))}
             </select>

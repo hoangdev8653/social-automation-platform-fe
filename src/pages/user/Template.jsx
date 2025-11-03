@@ -1,28 +1,34 @@
-import React, { useEffect } from "react";
-import { FileText, Hash, Edit, Copy, Trash2, Play } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { FileText, Hash, Play } from "lucide-react";
 import { templateStore } from "../../store/template";
+import { toast } from "react-toastify";
 
 export default function Template() {
+  const [filter, setFilter] = useState("all");
   const template = templateStore();
 
   useEffect(() => {
     const fetchData = async () => {
-      await template.getAllTemplate(); // Gọi API lấy dữ liệu template
+      await template.getAllTemplate();
     };
     fetchData();
   }, []);
 
-  // console.log(template.data); // Debug dữ liệu từ API
-
   const handleUseTemplate = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
-      alert("✅ Đã sao chép nội dung vào clipboard!");
+      toast.success("Đã sao chép nội dung vào clipboard!");
     } catch (err) {
       console.error("Lỗi khi sao chép: ", err);
-      alert("Không thể sao chép nội dung.");
+      toast.error("Không thể sao chép nội dung.");
     }
   };
+
+  const filteredTemplates =
+    template.data?.filter((t) => {
+      if (filter === "all") return true;
+      return t.type === filter;
+    }) || [];
 
   return (
     <div className="min-h-screen bg-gray-50 m-4">
@@ -44,21 +50,42 @@ export default function Template() {
         <span className="font-medium text-gray-800 mr-2">
           Bộ lọc Templates:
         </span>
-        <button className="px-3 py-1.5 bg-gray-800 text-white rounded-lg text-sm">
-          Tất cả
-        </button>
-        <button className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm">
-          Caption
-        </button>
-        <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-sm">
-          Hashtag
-        </button>
+        {[
+          {
+            key: "all",
+            label: "Tất cả",
+            activeClass: "bg-gray-800 text-white",
+            inactiveClass: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+          },
+          {
+            key: "caption",
+            label: "Caption",
+            activeClass: "bg-blue-600 text-white",
+            inactiveClass: "bg-blue-100 text-blue-700 hover:bg-blue-200",
+          },
+          {
+            key: "hashtag",
+            label: "Hashtag",
+            activeClass: "bg-green-600 text-white",
+            inactiveClass: "bg-green-100 text-green-700 hover:bg-green-200",
+          },
+        ].map(({ key, label, activeClass, inactiveClass }) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key)}
+            className={`px-3 py-1.5 rounded-lg text-sm transition ${
+              filter === key ? activeClass : inactiveClass
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Danh sách templates */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {template?.data?.length > 0 ? (
-          template.data.map((t) => (
+        {filteredTemplates.length > 0 ? (
+          filteredTemplates.map((t) => (
             <div
               key={t.id}
               className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
