@@ -1,50 +1,70 @@
-import React, { useState } from "react";
-import { Eye, Edit, Trash2, PlusCircle, Filter } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Eye, Trash2, PlusCircle, Filter, Check, X } from "lucide-react";
 import AddPost from "./AddPost";
+import { postStore } from "../../../store/post";
+import formatDate from "../../../utils/formatDate";
+import { postTargetStore } from "../../../store/postTarget";
+import PreviewPost from "./PreviewPost";
+import ApprovePost from "./ApprovePost";
+import ConfirmationModal from "../../../components/ConfirmationModal";
+import { toast } from "react-toastify";
 
 const Post = () => {
   const [open, setOpen] = useState(false);
-  const [posts] = useState([
-    {
-      id: 1,
-      content:
-        "🎉 Chào mừng đến với sản phẩm mới của chúng tôi! Khám phá những tính năng tuyệt vời...",
-      platforms: ["facebook", "instagram"],
-      page: "Công ty ABC - Fanpage, Instagram Business",
-      status: "Đã đăng",
-      author: "Unknown",
-      time: "17:00:00",
-      date: "15/1/2024",
-      media: "3 ảnh",
-    },
-    {
-      id: 2,
-      content:
-        "📹 Video hướng dẫn chi tiết cách sử dụng sản phẩm ABC. Xem ngay để không bỏ lỡ...",
-      platforms: ["tiktok", "youtube"],
-      page: "Demo TikTok Channel, YouTube Channel",
-      status: "Đã lên lịch",
-      author: "Unknown",
-      time: "22:00:00",
-      date: "16/1/2024",
-      media: "1 ảnh, 1 video",
-    },
-    {
-      id: 3,
-      content:
-        "💼 Tips và tricks để tối ưu hiệu suất làm việc với công nghệ mới nhất. Chia sẻ ngay...",
-      platforms: ["facebook", "twitter", "threads"],
-      page: "Công ty ABC - Fanpage, Twitter Business",
-      status: "Đã duyệt",
-      author: "Unknown",
-      time: "19:00:00",
-      date: "17/1/2024",
-      media: "2 ảnh",
-    },
-  ]);
+  const post = postStore();
+  const postTarget = postTargetStore();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
-  const deletePost = async (id) => {
-    alert("Bạn chắc chắn muốn xóa bài viết này !");
+  useEffect(() => {
+    const fetchData = async () => {
+      await post.getAllPost();
+      await postTarget.getAllPostTaget();
+    };
+    fetchData();
+  }, []);
+
+  const handlePreview = (postId) => {
+    setSelectedPost(postId);
+    setIsPreviewOpen(true);
+  };
+
+  const handleOpenApproveModal = (postId) => {
+    setSelectedPost(postId);
+    setIsApproveOpen(true);
+  };
+
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
+  const closeConfirmation = () =>
+    setConfirmation({ ...confirmation, isOpen: false });
+
+  const handleDeletePost = (postId) => {
+    setConfirmation({
+      isOpen: true,
+      title: "Xác nhận xóa bài viết",
+      message: "Bạn có chắc chắn muốn xóa bài viết này không?",
+      onConfirm: async () => {
+        try {
+          const response = await post.deletePost(postId);
+          if (response.status === 200) {
+            toast.success("Bài viết đã được xóa thành công.");
+            await postTarget.getAllPostTaget(); // Tải lại dữ liệu
+          } else {
+            toast.error("Xóa bài viết thất bại.");
+          }
+        } catch (error) {
+          toast.error("Đã xảy ra lỗi khi xóa bài viết.");
+        }
+        closeConfirmation();
+      },
+    });
   };
 
   return (
@@ -104,77 +124,159 @@ const Post = () => {
               <th className="px-4 py-3">Nền tảng</th>
               <th className="px-4 py-3">Page</th>
               <th className="px-4 py-3">Trạng thái</th>
-              <th className="px-4 py-3">Tác giả</th>
               <th className="px-4 py-3">Thời gian</th>
               <th className="px-4 py-3 text-center">Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
-              <tr
-                key={post.id}
-                className="border-b border-gray-100 hover:bg-gray-50 transition"
-              >
-                <td className="px-4 py-3">
-                  <p className="font-medium text-gray-800">{post.content}</p>
-                  <p className="text-sm text-blue-600 mt-1">{post.media}</p>
-                </td>
+            {Object.values(
+              (postTarget?.data?.content || []).reduce((acc, item) => {
+                const postId = item.Post.id;
+                if (!acc[postId]) {
+                  acc[postId] = {
+                    postId,
+                    caption: item.Post.caption,
+                    createdAt: item.createdAt,
+                    platforms: [],
+                    statuses: [],
+                  };
+                }
 
-                <td className="px-4 py-3">
-                  <div className="flex gap-1 flex-wrap">
-                    {post.platforms.map((pf, i) => (
-                      <span
-                        key={i}
-                        className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full"
-                      >
-                        {pf}
-                      </span>
+                acc[postId].platforms.push({
+                  name: item.SocialAccount.platform.name,
+                  image: item.SocialAccount.platform.image,
+                  accountName: item.SocialAccount.account_name,
+                });
+
+                acc[postId].statuses.push(item.status);
+
+                return acc;
+              }, {})
+            ).map((grouped) => {
+              // Nếu có ít nhất 1 nền tảng failed → toàn bài coi là failed
+              const finalStatus = grouped.statuses.includes("failed")
+                ? "failed"
+                : grouped.statuses.includes("published")
+                ? "published"
+                : "pending";
+
+              return (
+                <tr
+                  key={grouped.postId}
+                  className="border-b border-gray-100 hover:bg-gray-50 transition"
+                >
+                  {/* Nội dung bài viết */}
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-gray-800">
+                      {grouped.caption}
+                    </p>
+                  </td>
+
+                  {/* Nền tảng */}
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-2">
+                      {grouped.platforms.map((p, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 bg-blue-200 px-2  py-1 rounded-full"
+                        >
+                          <span className="text-xs text-blue-600">
+                            {p.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+
+                  {/* Page */}
+                  <td className="px-4 py-3 text-gray-700">
+                    {grouped.platforms.map((p, i) => (
+                      <div key={i} className="text-sm my-1">
+                        {p.accountName}
+                      </div>
                     ))}
-                  </div>
-                </td>
+                  </td>
 
-                <td className="px-4 py-3 text-gray-700">{post.page}</td>
+                  {/* Trạng thái */}
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center justify-center px-3 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                        finalStatus === "published"
+                          ? "bg-blue-100 text-blue-700"
+                          : finalStatus === "failed"
+                          ? "bg-red-100 text-red-600"
+                          : "bg-yellow-100 text-yellow-600"
+                      }`}
+                    >
+                      {finalStatus === "published"
+                        ? "Đã đăng"
+                        : finalStatus === "failed"
+                        ? "Đăng thất bại"
+                        : "Đang chờ duyệt"}
+                    </span>
+                  </td>
 
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center justify-center px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap ${
-                      post.status === "Đã đăng"
-                        ? "bg-blue-100 text-blue-700"
-                        : post.status === "Đã lên lịch"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-green-100 text-green-700"
-                    }`}
-                  >
-                    {post.status}
-                  </span>
-                </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">
+                    {formatDate(grouped.createdAt)}
+                  </td>
 
-                <td className="px-4 py-3">{post.author}</td>
-                <td className="px-4 py-3">
-                  <p>{post.time}</p>
-                  <p className="text-gray-500 text-xs">{post.date}</p>
-                </td>
+                  <td className="px-4 text-center align-middle">
+                    <div className="flex gap-3 justify-center text-gray-600">
+                      <Eye
+                        onClick={() => handlePreview(grouped.postId)}
+                        className="cursor-pointer hover:text-blue-600"
+                        size={18}
+                      />
 
-                <td className="px-4 py-8 flex gap-3 justify-center text-gray-600 ">
-                  <Eye
-                    className="cursor-pointer hover:text-blue-600"
-                    size={18}
-                  />
-                  <Edit
-                    className="cursor-pointer hover:text-emerald-600"
-                    size={18}
-                  />
-                  <Trash2
-                    onClick={() => deletePost(post.id)}
-                    className="cursor-pointer hover:text-red-600"
-                    size={18}
-                  />
-                </td>
-              </tr>
-            ))}
+                      <button
+                        disabled={finalStatus !== "pending"}
+                        onClick={() => handleOpenApproveModal(grouped.postId)}
+                        title={
+                          finalStatus === "pending"
+                            ? "Duyệt bài viết"
+                            : "Chỉ có thể duyệt khi trạng thái là 'Đang chờ duyệt'"
+                        }
+                        className={`transition flex items-center justify-center
+    ${
+      finalStatus === "pending"
+        ? "text-emerald-600 hover:text-emerald-500 cursor-pointer"
+        : "text-gray-400 cursor-not-allowed"
+    }`}
+                      >
+                        <Check size={18} />
+                      </button>
+
+                      <Trash2
+                        onClick={() => handleDeletePost(grouped.postId)}
+                        className="cursor-pointer hover:text-red-600"
+                        size={18}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+      <PreviewPost
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        postId={selectedPost}
+      />
+      <ApprovePost
+        isOpen={isApproveOpen}
+        onClose={() => setIsApproveOpen(false)}
+        postId={selectedPost}
+      />
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        title={confirmation.title}
+        message={confirmation.message}
+        onConfirm={confirmation.onConfirm}
+        onClose={closeConfirmation}
+        confirmText="Xóa"
+      />
     </div>
   );
 };
