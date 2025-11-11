@@ -32,8 +32,12 @@ export const authStore = create((set) => ({
       setLocalStorage("refreshToken", response.data.refreshToken);
       return response;
     } catch (error) {
-      console.log(error);
-      set({ loading: false, error: error.message });
+      const errorMessage =
+        error.response?.data?.message ||
+        "Đăng nhập thất bại. Vui lòng kiểm tra lại email và mật khẩu.";
+      set({ loading: false, error: errorMessage });
+      // Ném lỗi ra ngoài để component có thể bắt và xử lý
+      throw new Error(errorMessage);
     }
   },
   logout: async () => {

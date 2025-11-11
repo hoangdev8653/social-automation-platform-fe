@@ -5,6 +5,8 @@ import {
   deletePost,
   getAllPost,
   getPostById,
+  getPostByUser,
+  rejectPost,
 } from "../apis/post";
 
 export const postStore = create((set, get) => ({
@@ -18,6 +20,19 @@ export const postStore = create((set, get) => ({
       set({ loading: true, error: null });
       const response = await getAllPost();
       set({ data: response.data, loading: false });
+      return response;
+    } catch (error) {
+      console.log(error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  getPostByUser: async () => {
+    try {
+      set({ loading: true, error: null });
+      const response = await getPostByUser();
+      set({ data: response.data, loading: false });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });
@@ -39,8 +54,9 @@ export const postStore = create((set, get) => ({
   createPost: async (postData) => {
     try {
       set({ loading: true, error: null });
-      await createPost(postData);
-      await get().getAllPost();
+      const response = await createPost(postData);
+      set({ loading: false, error: null });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });
@@ -50,8 +66,21 @@ export const postStore = create((set, get) => ({
   approvePost: async (id) => {
     try {
       set({ loading: true, error: null });
-      await approvePost(id);
-      await get().getAllPost();
+      const response = await approvePost(id);
+      set({ loading: false, error: null });
+      return response;
+    } catch (error) {
+      console.log(error);
+      set({ error: error.message, loading: false });
+    }
+  },
+
+  rejectPost: async (id) => {
+    try {
+      set({ loading: true, error: null });
+      const response = await rejectPost(id);
+      set({ loading: false, error: null });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { templateCategoryStore } from "../../../store/templateCategory";
 
 export default function UpdateTemplate({
   template,
@@ -14,8 +15,12 @@ export default function UpdateTemplate({
     category_id: "",
     content: "",
   });
+  const templateCategory = templateCategoryStore();
 
   useEffect(() => {
+    const fetchData = async () => {
+      await templateCategory.getAllTemplateCategory();
+    };
     if (template) {
       setFormData({
         title: template.title || "",
@@ -23,6 +28,7 @@ export default function UpdateTemplate({
         content: template.content || "",
       });
     }
+    fetchData();
   }, [template]);
 
   const handleChange = (e) => {
@@ -89,9 +95,9 @@ export default function UpdateTemplate({
               className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-200 outline-none text-sm bg-white"
             >
               <option value="">Chọn danh mục</option>
-              {categories?.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.title}
+              {templateCategory?.data?.content?.map((item, index) => (
+                <option key={index} value={item?.id}>
+                  {item?.name}
                 </option>
               ))}
             </select>

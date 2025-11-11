@@ -22,10 +22,10 @@ export const updateUserById = async (id, data) => {
   });
 };
 
-export const changePassword = async (data) => {
+export const updatePassword = async (data) => {
   return await axiosConfig({
-    method: "post",
-    url: `user/change-password`,
+    method: "put",
+    url: `user/update-password`,
     data,
   });
 };

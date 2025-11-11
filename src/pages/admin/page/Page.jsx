@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, RefreshCw, Settings, Trash2, Search } from "lucide-react";
 import ConnectPage from "./ConnectPage";
 import { socialAccountStore } from "../../../store/socialAccount";
-import formatDate from "../../../utils/formatData";
+import formatDate from "../../../utils/formatDate";
 import facebook from "../../../assets/facebook.png";
 import instagram from "../../../assets/instagram.png";
 import tiktok from "../../../assets/tiktok.png";

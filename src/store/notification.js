@@ -25,8 +25,10 @@ export const notificationStore = create((set, get) => ({
   updateStatusNotification: async (id) => {
     try {
       set({ loading: true, error: null });
-      await updateStatusNotification(id);
-      await get().getNotificationByUser();
+      const response = await updateStatusNotification(id);
+      set({ loading: false });
+
+      return response;
     } catch (error) {
       console.log(error);
       set({ loading: false, error: error.message });

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import {
-  changePassword,
+  updatePassword,
   deleteUserById,
   getAllUser,
   getUserById,
@@ -38,22 +38,27 @@ export const userStore = create((set, get) => ({
     }
   },
 
-  updateUserById: async (id, userData) => {
+  updateUserById: async (id, name) => {
     try {
       set({ loading: true, error: null });
-      await updateUserById(id, userData);
-      await get().getAllUser(); // Tải lại danh sách người dùng sau khi cập nhật
+      console.log(id);
+      console.log(name);
+
+      const response = await updateUserById(id, { name });
+      set({ loading: false, error: null });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });
     }
   },
 
-  changePassword: async (id, passwordData) => {
+  updatePassword: async (data) => {
     try {
       set({ loading: true, error: null });
-      await changePassword(id, passwordData);
-      set({ loading: false });
+      const response = await updatePassword(data);
+      set({ loading: false, erorr: null });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

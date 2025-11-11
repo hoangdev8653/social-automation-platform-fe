@@ -3,10 +3,10 @@ import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom"; // 1. Import useNavigate
 import { loginValidate } from "../validations/auth";
 import { authStore } from "../store/auth";
-import { toast } from "react-toastify";
+import Notification from "../utils/notification";
 
 export default function Login() {
-  const navigate = useNavigate(); // 2. Khởi tạo hàm navigate
+  const navigate = useNavigate();
   const auth = authStore();
   const formik = useFormik({
     initialValues: {
@@ -15,16 +15,20 @@ export default function Login() {
     },
     validationSchema: loginValidate,
     onSubmit: async (values) => {
-      const response = await auth.login(values);
-      if (response.status == 200) {
-        toast.success("Đăng nhập thành công");
-        setTimeout(() => {
-          if (response.data.content.role === "admin") {
-            navigate("/dashboard/"); 
-          } else {
-            navigate("/"); 
-          }
-        }, 3000);
+      try {
+        const response = await auth.login(values);
+        if (response.status === 200) {
+          Notification("success", "Đăng nhập thành công!");
+          setTimeout(() => {
+            if (response.data.content.role === "admin") {
+              navigate("/dashboard/");
+            } else {
+              navigate("/");
+            }
+          }, 3000);
+        }
+      } catch (error) {
+        Notification("error", error.message);
       }
     },
   });

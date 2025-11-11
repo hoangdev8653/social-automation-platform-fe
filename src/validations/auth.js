@@ -20,7 +20,7 @@ export const registerValidate = Yup.object().shape({
   username: Yup.string().min(3).required("User name is Required"),
 });
 
-export const changePasswordValidate = Yup.object().shape({
+export const updatePasswordValidate = Yup.object().shape({
   password: Yup.string()
     .min(6, "Password at least 6 character ")
     .required("Password is Required"),

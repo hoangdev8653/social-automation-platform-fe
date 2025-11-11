@@ -7,6 +7,13 @@ export const getAllPost = async () => {
   });
 };
 
+export const getPostByUser = async () => {
+  return await axiosConfig({
+    method: "get",
+    url: "post/ByUser",
+  });
+};
+
 export const getPostById = async (id) => {
   return await axiosConfig({
     method: "get",
@@ -26,6 +33,13 @@ export const approvePost = async (id) => {
   return await axiosConfig({
     method: "patch",
     url: `post/${id}/approve`,
+  });
+};
+
+export const rejectPost = async (id) => {
+  return await axiosConfig({
+    method: "patch",
+    url: `post/${id}/reject`,
   });
 };
 

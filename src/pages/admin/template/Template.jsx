@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { FileText, Hash, Play, Edit, Trash2 } from "lucide-react";
 import { templateStore } from "../../../store/template";
-import { toast } from "react-toastify";
 import CreateTemplate from "./CreateTemplate";
 import UpdateTemplate from "./UpdateTemplate";
 import ConfirmationModal from "../../../components/ConfirmationModal";
+import Notification from "../../../utils/notification";
 
 export default function Template() {
   const template = templateStore();
@@ -12,7 +12,6 @@ export default function Template() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [templateTypeToCreate, setTemplateTypeToCreate] = useState(null);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [categories, setCategories] = useState([]);
   const [confirmation, setConfirmation] = useState({
     isOpen: false,
     title: "",
@@ -42,16 +41,14 @@ export default function Template() {
   const handleUseTemplate = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast.success("Đã sao chép nội dung vào clipboard!");
-    } catch (err) {
-      console.error("Lỗi khi sao chép: ", err);
-      toast.error("Không thể sao chép nội dung.");
+      Notification("success", "Đã sao chép nội dung vào clipboard!");
+    } catch (error) {
+      console.error("Lỗi khi sao chép: ", error);
+      Notification("error", "Không thể sao chép nội dung.");
     }
   };
 
   const handleDeteleTemplate = (id) => {
-    console.log(id);
-
     setConfirmation({
       isOpen: true,
       title: "Xóa Template",
@@ -59,10 +56,10 @@ export default function Template() {
       onConfirm: async () => {
         const response = await template.deleteTemplate(id);
         if (response.success) {
-          toast.success("Xóa template thành công!");
+          Notification("success", "Xóa template thành công!");
           template.getAllTemplate();
         } else {
-          toast.error("Không thể xóa template!");
+          Notification("error", "Không thể xóa template!");
         }
         closeConfirmation();
       },

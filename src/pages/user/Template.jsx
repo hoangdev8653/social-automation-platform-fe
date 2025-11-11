@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FileText, Hash, Play } from "lucide-react";
 import { templateStore } from "../../store/template";
 import { toast } from "react-toastify";
+import Notification from "../../utils/notification";
 
 export default function Template() {
   const [filter, setFilter] = useState("all");
@@ -17,10 +18,10 @@ export default function Template() {
   const handleUseTemplate = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast.success("Đã sao chép nội dung vào clipboard!");
+      Notification("success", "Đã sao chép nội dung vào clipboard!");
     } catch (err) {
       console.error("Lỗi khi sao chép: ", err);
-      toast.error("Không thể sao chép nội dung.");
+      Notification("error", "Không thể sao chép nội dung.");
     }
   };
 
@@ -34,7 +35,6 @@ export default function Template() {
     <div className="min-h-screen bg-gray-50 m-4">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Templates</h1>
         <div className="flex gap-3">
           <button className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600">
             <FileText size={16} /> Caption

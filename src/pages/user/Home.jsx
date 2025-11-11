@@ -1,76 +1,32 @@
-// src/pages/Home.jsx
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { postStore } from "../../store/post";
+import PreviewPost from "../admin/post/PreviewPost";
 
 export default function Home() {
   const [filter, setFilter] = useState("all");
+  const post = postStore();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
-  // ✅ Dữ liệu mẫu bài viết của user
-  const mockPosts = [
-    {
-      id: 1,
-      caption: "Hôm nay là một ngày thật tuyệt vời 🌞",
-      hashtags: ["#happy", "#sunnyday"],
-      status: "published",
-      created_at: "2025-10-15T08:30:00Z",
-      media: [
-        {
-          url: "https://images.unsplash.com/photo-1503264116251-35a269479413?w=400",
-        },
-        {
-          url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400",
-        },
-      ],
-    },
-    {
-      id: 2,
-      caption: "Đang viết bài mới, chưa hoàn thiện 😅",
-      hashtags: ["#draft", "#working"],
-      status: "draft",
-      created_at: "2025-10-16T10:45:00Z",
-      media: [],
-    },
-    {
-      id: 3,
-      caption: "Bài viết đang chờ duyệt bởi admin 💭",
-      hashtags: ["#waiting", "#approval"],
-      status: "pending_approval",
-      created_at: "2025-10-14T09:00:00Z",
-      media: [
-        {
-          url: "https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=400",
-        },
-      ],
-    },
-    {
-      id: 4,
-      caption: "Bài viết bị từ chối do vi phạm nội dung ❌",
-      hashtags: ["#rejected"],
-      status: "rejected",
-      created_at: "2025-10-12T13:10:00Z",
-      media: [],
-    },
-    {
-      id: 5,
-      caption: "Lên lịch đăng bài cho cuối tuần 📅",
-      hashtags: ["#scheduled", "#planning"],
-      status: "scheduled",
-      created_at: "2025-10-11T19:20:00Z",
-      media: [
-        {
-          url: "https://images.unsplash.com/photo-1536305030431-73c8f87e83d3?w=400",
-        },
-      ],
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      await post.getPostByUser();
+    };
+    fetchData();
+  }, []);
+  const handlePreview = (postId) => {
+    setSelectedPost(postId);
+    setIsPreviewOpen(true);
+  };
+
+  const posts = post?.data?.content || [];
 
   // ✅ Lọc bài viết theo trạng thái
   const filteredPosts =
-    filter === "all" ? mockPosts : mockPosts.filter((p) => p.status === filter);
+    filter === "all" ? posts : posts.filter((p) => p.status === filter);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold mb-4">Bài viết của tôi</h1>
-
+    <div className="p-6 mt-8">
       {/* Bộ lọc trạng thái */}
       <div className="flex flex-wrap gap-3 m-6">
         {[
@@ -79,6 +35,7 @@ export default function Home() {
           "pending_approval",
           "scheduled",
           "published",
+          "failed",
           "rejected",
         ].map((status) => (
           <button
@@ -115,7 +72,8 @@ export default function Home() {
                     ? "bg-yellow-100 text-yellow-700"
                     : post.status === "rejected"
                     ? "bg-red-100 text-red-700"
-                    : post.status === "pending_approval"
+                    : post.status === "pending_approval" ||
+                      post.status === "failed"
                     ? "bg-orange-100 text-orange-700"
                     : "bg-blue-100 text-blue-700"
                 }`}
@@ -123,14 +81,15 @@ export default function Home() {
                 {post.status.replace("_", " ")}
               </span>
               <span className="text-xs text-gray-500">
-                {new Date(post.created_at).toLocaleDateString("vi-VN")}
+                {new Date(post.createdAt).toLocaleDateString("vi-VN")}
               </span>
             </div>
 
             <p className="text-gray-800 font-medium mb-1">{post.caption}</p>
-            {post.hashtags && (
+            {/* {post.hashtags && (
               <p className="text-blue-600 text-sm">{post.hashtags.join(" ")}</p>
-            )}
+            )} */}
+            <p className="text-blue-600 text-sm">{post.hashtags}</p>
 
             {/* Hình ảnh */}
             {post.media?.length > 0 && (
@@ -148,7 +107,10 @@ export default function Home() {
 
             {/* Nút hành động */}
             <div className="flex justify-end gap-2 mt-4">
-              <button className="text-blue-600 text-sm hover:underline">
+              <button
+                onClick={() => handlePreview(post.id)}
+                className="text-blue-600 text-sm hover:underline"
+              >
                 Xem chi tiết
               </button>
               <button className="text-gray-600 text-sm hover:underline">
@@ -160,6 +122,11 @@ export default function Home() {
             </div>
           </div>
         ))}
+        <PreviewPost
+          isOpen={isPreviewOpen}
+          onClose={() => setIsPreviewOpen(false)}
+          postId={selectedPost}
+        />
       </div>
 
       {/* Không có bài viết */}

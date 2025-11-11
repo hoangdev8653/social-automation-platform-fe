@@ -1,62 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getLocalStorage, setLocalStorage } from "../../utils/localStorage";
+import { userStore } from "../../store/user";
+import Notification from "../../utils/notification";
+import { useNavigate } from "react-router-dom";
+import ChangePassword from "./ChangePassword";
 
 export default function Profile() {
+  const user = userStore();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState({
-    name: "Nguyễn Văn A",
-    email: "nguyenvana@example.com",
-    timezone: "Asia/Ho_Chi_Minh",
-    avatar: "https://i.pravatar.cc/150?img=3",
+    name: "",
+    email: "",
+    status: "",
+    role: "",
   });
+  const userData = getLocalStorage("user");
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setProfile({ ...profile, avatar: url });
+  useEffect(() => {
+    if (userData) {
+      setProfile({
+        name: userData.name || "",
+        email: userData.email || "",
+        status: userData.status || "N/A",
+        role: userData.role || "N/A",
+      });
     }
-  };
+  }, []);
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  const handleSave = () => {
-    alert("✅ Thông tin đã được cập nhật!");
+  const handleSave = async () => {
+    const response = await user.updateUserById(userData.id, profile.name);
+    if (response.status == 200) {
+      Notification("success", "Cập nhật thông tin thành công");
+      const updatedUserData = { ...userData, name: profile.name };
+      setLocalStorage("user", updatedUserData);
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 mt-16 ">
       {/* Header */}
-      <header className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-semibold text-gray-800">Hồ sơ cá nhân</h1>
-      </header>
 
       <div className="bg-white shadow-md rounded-2xl p-6 max-w-3xl mx-auto">
-        {/* Avatar */}
-        <div className="flex items-center gap-6 border-b pb-6 mb-6">
-          <img
-            src={profile.avatar}
-            alt="avatar"
-            className="w-24 h-24 rounded-full object-cover border"
-          />
-          <div>
-            <label
-              htmlFor="avatarUpload"
-              className="cursor-pointer text-blue-600 hover:underline"
-            >
-              Đổi ảnh đại diện
-            </label>
-            <input
-              type="file"
-              id="avatarUpload"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </div>
-        </div>
-
         {/* Thông tin cá nhân */}
+        <h1 className="text-2xl font-semibold text-gray-800 text-center mx-auto">
+          Hồ sơ cá nhân
+        </h1>
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-600">
@@ -84,19 +80,26 @@ export default function Profile() {
 
           <div>
             <label className="block text-sm font-medium text-gray-600">
-              Múi giờ
+              Trạng thái
             </label>
-            <select
-              name="timezone"
-              value={profile.timezone}
-              onChange={handleChange}
-              className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring focus:ring-blue-100"
-            >
-              <option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (GMT+7)</option>
-              <option value="UTC">UTC (GMT+0)</option>
-              <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
-              <option value="America/New_York">America/New_York (GMT-5)</option>
-            </select>
+            <input
+              name="status"
+              value={profile.status}
+              disabled
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100 text-gray-500 capitalize"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600">
+              Vai trò
+            </label>
+            <input
+              name="role"
+              value={profile.role}
+              disabled
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-100 text-gray-500 capitalize"
+            />
           </div>
         </div>
 
@@ -104,15 +107,23 @@ export default function Profile() {
         <div className="mt-8 flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700"
+            disabled={profile.name === userData.name || !profile.name.trim()}
+            className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
           >
             Lưu thay đổi
           </button>
-          <button className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300">
+          <button
+            onClick={() => setIsPasswordModalOpen(true)}
+            className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300"
+          >
             Đổi mật khẩu
           </button>
         </div>
       </div>
+      <ChangePassword
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+      />
     </div>
   );
 }

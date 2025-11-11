@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import { LogOut, Home, PlusSquare, Bot, LayoutTemplate } from "lucide-react";
 import { PATH } from "../../utils/path";
-import Notification from "../../components/Notification";
+import Notification from "../../templates/Notification";
 import { getLocalStorage } from "../../utils/localStorage";
 import { authStore } from "../../store/auth";
 import { useNavigate } from "react-router-dom";
@@ -41,14 +41,20 @@ const Header = () => {
                 alt="User Avatar"
                 className="w-10 h-10 rounded-full"
               />
-              <div className="flex flex-col">
-                <p className="text-sm font-medium text-gray-700">
-                  {user?.name}
-                </p>
-                <span className="text-xs text-gray-500 text-center">
-                  {user?.role}
-                </span>
-              </div>
+              <a href="/profile">
+                <div className="flex flex-col hover:opacity-70">
+                  <p className="text-sm font-medium text-gray-700">
+                    {user?.name}
+                  </p>
+                  <span className="text-xs text-gray-500 text-center">
+                    {(() => {
+                      if (user?.role === "admin") return "Người quản lí";
+                      if (user?.role === "user") return "Nhân viên";
+                      return user?.role;
+                    })()}
+                  </span>
+                </div>
+              </a>
             </div>
 
             <button

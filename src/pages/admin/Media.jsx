@@ -23,8 +23,6 @@ const Media = () => {
     fetchData();
   }, []);
 
-  console.log("media: ", media.data);
-
   // ===> TÍNH TOÁN THỐNG KÊ DỰA TRÊN DỮ LIỆU THẬT
   const images = media.data?.content?.filter((m) => m.type === "image") || [];
   const videos = media.data?.content?.filter((m) => m.type === "video") || [];
