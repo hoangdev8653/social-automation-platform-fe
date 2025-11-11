@@ -1,16 +1,14 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import { userStore } from "../../../store/user";
+import { toast } from "react-toastify";
 
 const AddUser = ({ onClose }) => {
+  const store = userStore();
   const [formData, setFormData] = useState({
     username: "",
-    employeeCode: "EMP001",
-    fullName: "",
     email: "",
-    status: "Hoạt động",
-    role: "",
-    password: "%ZkLrkULuVgv",
-    permission: "",
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -20,11 +18,16 @@ const AddUser = ({ onClose }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Dữ liệu nhân viên:", formData);
-    onClose(); // Đóng modal sau khi lưu
-    // TODO: Gửi dữ liệu đến API backend
+    const response = await store.createUser(formData);
+    if (response && response.status === 201) {
+      toast.success("Thêm nhân viên mới thành công!");
+      await store.getAllUser(); // Tải lại danh sách người dùng
+      onClose();
+    } else {
+      toast.error(response?.data?.message || "Thêm nhân viên thất bại.");
+    }
   };
 
   return (
@@ -37,7 +40,7 @@ const AddUser = ({ onClose }) => {
             onClick={onClose}
             className="p-2 rounded-full hover:bg-gray-200 -mr-2 -mt-2"
           >
-            <X size={24} className="text-gray-600" />
+            <X size={24} className="text-gray-600 cursor-pointer" />
           </button>
         </div>
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
@@ -56,33 +59,6 @@ const AddUser = ({ onClose }) => {
             />
           </div>
 
-          {/* Mã nhân viên */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Mã nhân viên
-            </label>
-            <input
-              type="text"
-              name="employeeCode"
-              value={formData.employeeCode}
-              disabled
-              className="w-full border rounded-lg p-2 bg-gray-100 text-gray-500"
-            />
-          </div>
-
-          {/* Họ và tên */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Họ và tên</label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-              placeholder="Nhập họ và tên"
-            />
-          </div>
-
           {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
@@ -96,36 +72,6 @@ const AddUser = ({ onClose }) => {
             />
           </div>
 
-          {/* Trạng thái */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Trạng thái</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            >
-              <option value="Hoạt động">Hoạt động</option>
-              <option value="Tạm nghỉ">Tạm nghỉ</option>
-            </select>
-          </div>
-
-          {/* Vai trò */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Vai trò</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2"
-            >
-              <option value="">Chọn vai trò...</option>
-              <option value="admin">Quản trị viên</option>
-              <option value="editor">Người biên tập</option>
-              <option value="staff">Nhân viên</option>
-            </select>
-          </div>
-
           {/* Mật khẩu */}
           <div className="relative">
             <label className="block text-sm font-medium mb-1">Mật khẩu</label>
@@ -135,6 +81,7 @@ const AddUser = ({ onClose }) => {
               value={formData.password}
               onChange={handleChange}
               className="w-full border rounded-lg p-2 pr-10 focus:ring focus:ring-blue-200"
+              placeholder="Nhập mật khẩu"
             />
             <button
               type="button"
@@ -143,22 +90,6 @@ const AddUser = ({ onClose }) => {
             >
               {showPassword ? "🙈" : "👁️"}
             </button>
-            <p className="text-xs text-gray-400 mt-1">
-              Để trống nếu không muốn thay đổi
-            </p>
-          </div>
-
-          {/* Quyền hạn */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Quyền hạn</label>
-            <input
-              type="text"
-              name="permission"
-              value={formData.permission}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-              placeholder="Nhập quyền hạn"
-            />
           </div>
 
           {/* Buttons */}
@@ -166,15 +97,15 @@ const AddUser = ({ onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              className="px-4 py-2 cursor-pointer hover:opacity-80 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="cursor-pointer hover:opacity-80 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              💾 Lưu nhân viên
+              💾 Đăng kí
             </button>
           </div>
         </form>

@@ -12,7 +12,7 @@ import {
   Lock,
 } from "lucide-react";
 import AddUser from "./AddUser";
-import UpdateUser from "./UpdateUser";
+import UpdateRole from "./UpdateRole";
 import { userStore } from "../../../store/user";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { toast } from "react-toastify";
@@ -302,7 +302,7 @@ export default function User() {
       {/* Modals */}
       {isAddUserOpen && <AddUser onClose={() => setIsAddUserOpen(false)} />}
       {editingUser && (
-        <UpdateUser
+        <UpdateRole
           user={editingUser}
           onClose={() => setEditingUser(null)}
           onSave={(updatedData) => {
