@@ -61,7 +61,7 @@ const Sidebar = () => {
     "text-gray-600 hover:bg-gray-100 hover:text-gray-900";
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200">
+    <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200 mt-16">
       <div className="p-4">
         <nav className="space-y-2">
           {sidebarNavItems.map((item) => (

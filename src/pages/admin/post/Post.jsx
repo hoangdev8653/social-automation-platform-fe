@@ -4,7 +4,7 @@ import AddPost from "./AddPost";
 import { postStore } from "../../../store/post";
 import formatDate from "../../../utils/formatDate";
 import { postTargetStore } from "../../../store/postTarget";
-import PreviewPost from "./PreviewPost";
+import PreviewPost from "../../../components/PreviewPost";
 import ApprovePost from "./ApprovePost";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { toast } from "react-toastify";
@@ -168,7 +168,9 @@ const Post = () => {
                   {/* Nội dung bài viết */}
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-800">
-                      {grouped.caption}
+                      {grouped.caption.length > 150
+                        ? `${grouped.caption.slice(0, 150)}...`
+                        : grouped.caption}
                     </p>
                   </td>
 

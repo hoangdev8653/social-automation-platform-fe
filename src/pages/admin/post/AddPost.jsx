@@ -41,13 +41,38 @@ export default function AddPost({ isOpen, onClose }) {
   };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    // Logic xử lý gửi bài đăng tương tự CreatePost.jsx
-    // ... (sẽ được thêm vào trong phần Formik)
-    console.log("Submitting", values);
-    toast.success("Bắt đầu quá trình tạo bài đăng!");
-    onClose(); // Đóng modal sau khi submit
-    resetForm();
-    setSubmitting(false);
+    try {
+      const { postOption, scheduledTime, ...filteredValues } = values;
+
+      const formData = new FormData();
+      formData.append("caption", filteredValues.caption);
+      formData.append("hashtags", filteredValues.hashtags);
+      filteredValues.socialAccountIds.forEach((id) => {
+        formData.append("socialAccountIds", id);
+      });
+
+      if (filteredValues.files && filteredValues.files.length > 0) {
+        filteredValues.files.forEach((file) => {
+          if (file instanceof File) {
+            formData.append("files", file);
+          } else {
+            console.warn("Không phải file hợp lệ:", file);
+          }
+        });
+      }
+      const response = await post.createPost(formData);
+      if (response?.status === 201) {
+        toast.success("Bài viết đã ở trạng thái chờ duyệt từ quản trị viên.");
+        resetForm();
+        setSelectedPlatforms([]);
+        onClose(); // Đóng modal sau khi submit thành công
+      }
+    } catch (error) {
+      console.error("Lỗi khi gửi bài đăng:", error);
+      toast.error("Tạo bài đăng thất bại, vui lòng thử lại.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -65,7 +90,7 @@ export default function AddPost({ isOpen, onClose }) {
           <h2 className="text-xl font-semibold">Thêm bài đăng mới</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 cursor-pointer"
           >
             <X size={22} />
           </button>
@@ -87,7 +112,7 @@ export default function AddPost({ isOpen, onClose }) {
                   as="textarea"
                   id="caption"
                   name="caption"
-                  className="w-full border rounded-lg p-3 h-24 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full border rounded-lg p-3 h-48 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Nhập nội dung bài đăng..."
                 />
                 <ErrorMessage
@@ -95,12 +120,6 @@ export default function AddPost({ isOpen, onClose }) {
                   component="div"
                   className="text-red-500 text-sm mt-1"
                 />
-                <button
-                  type="button"
-                  className="mt-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-                >
-                  AI tạo nội dung
-                </button>
               </div>
 
               {/* Nền tảng & Page */}
@@ -232,12 +251,6 @@ export default function AddPost({ isOpen, onClose }) {
                   placeholder="#hashtag1 #hashtag2"
                   className="border rounded-lg w-full p-2"
                 />
-                <button
-                  type="button"
-                  className="mt-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2"
-                >
-                  <Hash size={18} /> AI tạo hashtags
-                </button>
               </div>
 
               {/* Footer */}
@@ -245,14 +258,14 @@ export default function AddPost({ isOpen, onClose }) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100"
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 cursor-pointer"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 cursor-pointer ${
                     values.postOption === "schedule"
                       ? "bg-blue-600 hover:bg-blue-700"
                       : "bg-indigo-600 hover:bg-indigo-700"

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import {
+  getAllNotification,
   getNotificationByUser,
   updateStatusNotification,
   deleteNotification,
@@ -9,6 +10,18 @@ export const notificationStore = create((set, get) => ({
   data: [],
   error: null,
   loading: false,
+
+  getAllNotification: async () => {
+    try {
+      set({ loading: true, error: null });
+      const response = await getAllNotification();
+      set({ loading: false, data: response.data });
+      return response;
+    } catch (error) {
+      console.log(error);
+      set({ loading: false, error: error.message });
+    }
+  },
 
   getNotificationByUser: async () => {
     try {

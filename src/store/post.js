@@ -75,10 +75,10 @@ export const postStore = create((set, get) => ({
     }
   },
 
-  rejectPost: async (id) => {
+  rejectPost: async (id, reason) => {
     try {
       set({ loading: true, error: null });
-      const response = await rejectPost(id);
+      const response = await rejectPost(id, reason);
       set({ loading: false, error: null });
       return response;
     } catch (error) {

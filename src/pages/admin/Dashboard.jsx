@@ -1,36 +1,34 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Edit3, Video, Share2, Users, Plus } from "lucide-react";
-
-const stats = [
-  {
-    title: "Tổng bài đăng",
-    value: 3,
-    change: "+12 hôm nay",
-    icon: <Edit3 className="w-6 h-6 text-blue-600" />,
-  },
-  {
-    title: "Video đã xử lý",
-    value: 2,
-    change: "+5 hôm nay",
-    icon: <Video className="w-6 h-6 text-green-600" />,
-  },
-  {
-    title: "Page kết nối",
-    value: 5,
-    change: "2 mới kết nối",
-    icon: <Share2 className="w-6 h-6 text-purple-600" />,
-  },
-  {
-    title: "Nhân viên",
-    value: 8,
-    change: "Tất cả hoạt động",
-    icon: <Users className="w-6 h-6 text-gray-700" />,
-  },
-];
+import { mediaStore } from "../../store/media";
+import { postStore } from "../../store/post";
+import { userStore } from "../../store/user";
+import { socialAccountStore } from "../../store/socialAccount";
+import { notificationStore } from "../../store/notification";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
+  const media = mediaStore();
+  const post = postStore();
+  const user = userStore();
+  const socialAccount = socialAccountStore();
+  const notification = notificationStore();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await media.getAllMedia();
+      await post.getAllPost();
+      await user.getAllUser();
+      await socialAccount.getAllSocialAccount();
+      await notification.getAllNotification();
+    };
+    fetchData();
+  }, []);
+
+  console.log(notification?.data?.content);
+
   return (
-    <div className=" bg-gray-50 min-h-screen">
+    <div className=" bg-gray-50 min-h-screen mt-16">
       {/* Header */}
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
         Tổng quan hệ thống
@@ -38,19 +36,50 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((item, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100"
-          >
-            <div>
-              <h2 className="text-gray-600 font-medium">{item.title}</h2>
-              <p className="text-2xl font-bold mt-1">{item.value}</p>
-              <span className="text-sm text-green-600">{item.change}</span>
-            </div>
-            <div className="bg-gray-50 p-3 rounded-lg">{item.icon}</div>
+        <div className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100">
+          <div>
+            <h2 className="text-gray-600 font-medium">Tổng Media</h2>
+            <p className="text-2xl font-bold mt-1">
+              {media?.data?.content?.length}
+            </p>
           </div>
-        ))}
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <Edit3 className="w-6 h-6 text-blue-600" />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100">
+          <div>
+            <h2 className="text-gray-600 font-medium">Page kết nối</h2>
+            <p className="text-2xl font-bold mt-1">
+              {post?.data?.content?.length}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <Edit3 className="w-6 h-6 text-blue-600" />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100">
+          <div>
+            <h2 className="text-gray-600 font-medium">Bài viết</h2>
+            <p className="text-2xl font-bold mt-1">
+              {post?.data?.content?.length}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <Edit3 className="w-6 h-6 text-blue-600" />
+          </div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100">
+          <div>
+            <h2 className="text-gray-600 font-medium">Nhân viên</h2>
+            <p className="text-2xl font-bold mt-1">
+              {user?.data?.data?.length}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <Edit3 className="w-6 h-6 text-blue-600" />
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -59,39 +88,43 @@ const Dashboard = () => {
           Thao tác nhanh
         </h2>
         <div className="flex flex-col sm:flex-row gap-4">
-          <button className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2">
+          <Link
+            to="/dashboard/post"
+            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center gap-2"
+          >
             <Plus size={18} /> Tạo bài đăng
-          </button>
-          <button className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition flex items-center justify-center gap-2">
-            <Video size={18} /> Upload video
-          </button>
-          <button className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition flex items-center justify-center gap-2">
+          </Link>
+          <Link
+            to="/dashboard/page"
+            className="flex-1 bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition flex items-center justify-center gap-2"
+          >
+            <Video size={18} /> Kết nối Page
+          </Link>
+          <Link
+            to="/dashboard/user"
+            className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 transition flex items-center justify-center gap-2"
+          >
             <Users size={18} /> Thêm nhân viên
-          </button>
+          </Link>
         </div>
       </div>
 
       {/* Recent Activity */}
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">
-          Hoạt động gần đây
+          Thông báo gần đây
         </h2>
-        <div className="flex justify-between items-center border-b pb-3 mb-3">
-          <p className="text-gray-700">
-            Nhân viên đăng bài lên Facebook thành công
-          </p>
-          <span className="text-green-600 text-sm bg-green-50 px-3 py-1 rounded-full">
-            Thành công
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <p className="text-gray-700">
-            Video “World Cup Highlights” đã xử lý xong
-          </p>
-          <span className="text-green-600 text-sm bg-green-50 px-3 py-1 rounded-full">
-            Hoàn tất
-          </span>
-        </div>
+        {notification?.data?.content?.slice(0, 5).map((item, index) => (
+          <div
+            key={index}
+            className="flex justify-between items-center border-b pb-3 mb-3  border-gray-200"
+          >
+            <p className="text-gray-700">{item?.message}</p>
+            <span className="text-green-600 text-sm bg-green-50 px-3 py-1 rounded-full">
+              Thành công
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );

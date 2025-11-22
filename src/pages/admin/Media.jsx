@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { mediaStore } from "../../store/media";
+import Notification from "../../utils/notification";
 
 const Media = () => {
   const [view, setView] = useState("grid");
@@ -39,6 +40,13 @@ const Media = () => {
     { title: "Audio", count: audios.length, icon: "🎧" },
     { title: "GB đã dùng", count: totalSizeInGB, icon: "💾" },
   ];
+
+  const handleDelete = async (id) => {
+    const response = await media.deleteMedia(id);
+    if (response?.status) {
+      Notification("success", "Xóa thành công");
+    }
+  };
 
   return (
     <div className="mt-16">
@@ -120,9 +128,9 @@ const Media = () => {
           {media?.data?.content?.length === 0 ? (
             <p className="text-gray-500">Không có media nào</p>
           ) : (
-            media?.data?.content?.map((m) => (
+            media?.data?.content?.map((m, index) => (
               <div
-                key={m.id}
+                key={index}
                 className="bg-white shadow rounded-lg overflow-hidden"
               >
                 <div className="relative">
@@ -178,6 +186,7 @@ const Media = () => {
                       onClick={() => window.open(m.url, "_blank")}
                     />
                     <Trash2
+                      onClick={() => handleDelete(m.id)}
                       size={16}
                       className="cursor-pointer hover:text-red-600"
                     />

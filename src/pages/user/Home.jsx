@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { postStore } from "../../store/post";
-import PreviewPost from "../admin/post/PreviewPost";
+import PreviewPost from "../../components/PreviewPost";
 
 export default function Home() {
   const [filter, setFilter] = useState("all");
@@ -85,22 +85,35 @@ export default function Home() {
               </span>
             </div>
 
-            <p className="text-gray-800 font-medium mb-1">{post.caption}</p>
-            {/* {post.hashtags && (
-              <p className="text-blue-600 text-sm">{post.hashtags.join(" ")}</p>
-            )} */}
+            <p className="text-gray-800 font-medium mb-1">
+              {post.caption.length > 150
+                ? `${post.caption.slice(0, 150)}...`
+                : post.caption}
+            </p>
+
             <p className="text-blue-600 text-sm">{post.hashtags}</p>
 
             {/* Hình ảnh */}
             {post.media?.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {post.media.slice(0, 3).map((m, idx) => (
-                  <img
-                    key={idx}
-                    src={m.url}
-                    alt=""
-                    className="w-full h-20 object-cover rounded"
-                  />
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {post.media.map((item, index) => (
+                  <div key={index}>
+                    {item.type === "image" ? (
+                      <img
+                        src={item.url}
+                        alt=""
+                        className="w-full h-20 object-cover rounded"
+                      />
+                    ) : (
+                      <video
+                        src={item.url}
+                        controls
+                        className="w-full h-48 object-cover"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -112,12 +125,6 @@ export default function Home() {
                 className="text-blue-600 text-sm hover:underline"
               >
                 Xem chi tiết
-              </button>
-              <button className="text-gray-600 text-sm hover:underline">
-                Sửa
-              </button>
-              <button className="text-red-600 text-sm hover:underline">
-                Xóa
               </button>
             </div>
           </div>

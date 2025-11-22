@@ -1,5 +1,12 @@
 import { axiosConfig } from "../axiosConfig";
 
+export const getAllNotification = async () => {
+  return await axiosConfig({
+    method: "get",
+    url: "notification",
+  });
+};
+
 export const getNotificationByUser = async (id) => {
   return await axiosConfig({
     method: "get",

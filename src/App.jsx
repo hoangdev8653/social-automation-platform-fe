@@ -19,6 +19,7 @@ import TemplateAdmin from "../src/pages/admin/template/Template";
 import Login from "./pages/Login";
 
 import ProtectedRoute from "../src/templates/ProtectedRoute.jsx";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -60,9 +61,12 @@ function App() {
         <Route path={PATH.MEDIA} element={<Media />} />
         <Route path={PATH.TEMPLATE_ADMIN} element={<TemplateAdmin />} />
       </Route>
-      {/* 
-      Nếu không có quyền
-      <Route path="/unauthorized" element={<h1>Không có quyền truy cập</h1>} /> */}
+
+      {/* Not Found Route */}
+      <Route path={PATH.NOTFOUND} element={<NotFound />} />
+
+      {/* Unauthorized Route */}
+      <Route path="/unauthorized" element={<h1>Không có quyền truy cập</h1>} />
     </Routes>
   );
 }

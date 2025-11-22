@@ -24,12 +24,11 @@ export const AiConversationStore = create((set) => ({
   deleteConversation: async (id) => {
     try {
       set({ loading: true, error: null });
-      const response = await deleteConversation(id);
+      await deleteConversation(id);
       set((state) => ({
         loading: false,
         data: state.data.filter((item) => item.id != id),
       }));
-      return response;
     } catch (error) {
       console.log(error);
       set({ loading: false, error: error?.response?.message || error.message });

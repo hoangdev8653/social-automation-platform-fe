@@ -34,8 +34,11 @@ export const mediaStore = create((set, get) => ({
   deleteMedia: async (id) => {
     try {
       set({ loading: true, error: null });
-      await deleteMedia(id);
-      await get().getAllMedia();
+      const response = await deleteMedia(id);
+      set((state) => {
+        data: state.data.filter((item) => item.id != id);
+      });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

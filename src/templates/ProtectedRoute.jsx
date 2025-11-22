@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { getLocalStorage } from "../utils/localStorage";
+import NotFound from "../pages/NotFound";
 
 const ProtectedRoute = ({ allowedRoles, children }) => {
   const user = getLocalStorage("user");
@@ -8,7 +9,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+    return <NotFound />;
   }
 
   return children;

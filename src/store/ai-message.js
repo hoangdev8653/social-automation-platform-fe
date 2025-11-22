@@ -11,8 +11,6 @@ export const AiMessageStore = create((set) => ({
       set({ loading: true, error: false });
       const response = await getMessageByConversation(id);
       set({ data: response.data.content, loading: false });
-      console.log(response.data.content);
-
       return response;
     } catch (error) {
       console.log(error);

@@ -2,32 +2,43 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { postStore } from "../../../store/post";
 import Notification from "../../../utils/notification";
+import { Navigate } from "react-router-dom";
 
-const ApprovePost = ({ isOpen, onClose, postId }) => {
+const ApprovePost = ({ isOpen, onClose, postId, onActionComplete }) => {
   const [reason, setReason] = useState("");
-  const post = postStore();
+  const { approvePost, rejectPost, loading } = postStore();
   if (!isOpen) return null;
 
   const handleApprovePost = async () => {
-    const response = await post.approvePost();
-    if (response.status == 200) {
+    const response = await approvePost(postId);
+    console.log(response);
+
+    if (response?.status == 200) {
       Notification("success", "Bài viết đã được đăng lên các nền tảng");
+      onClose(); // Đóng modal
+    } else {
+      Notification("error", "Bài viết không thể đăng lên các nền tảng");
     }
+    onActionComplete?.(); // Luôn gọi callback để tải lại dữ liệu
   };
 
-  const handleRejectPost = async (reason) => {
-    const response = await post.rejectPost(postId, reason);
+  const handleRejectPost = async () => {
+    const response = await rejectPost(postId, reason);
     if (response.status == 200) {
       Notification("success", "Bài viết đã được từ chối xét duyệt");
+      onClose(); // Đóng modal
+    } else {
+      Notification("error", "Từ chối bài viết thất bại");
     }
+    onActionComplete?.(); // Luôn gọi callback để tải lại dữ liệu
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
       <div className="bg-white rounded-xl w-[400px] p-6 shadow-lg relative">
         <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+          onClick={!loading ? onClose : undefined}
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer"
         >
           <X size={20} />
         </button>
@@ -42,6 +53,7 @@ const ApprovePost = ({ isOpen, onClose, postId }) => {
             placeholder="Nhập lý do từ chối (nếu có)..."
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            disabled={loading}
             className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-1 focus:ring-blue-400 focus:outline-none"
             rows={3}
           ></textarea>
@@ -49,24 +61,31 @@ const ApprovePost = ({ isOpen, onClose, postId }) => {
           <div className="flex justify-end gap-3 pt-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700"
+              disabled={loading}
+              className="px-4 py-2 text-sm rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Hủy
             </button>
             <button
               onClick={() => {
-                if (reason.trim()) onReject(reason);
-                handleRejectPost;
+                if (reason.trim() && !loading) {
+                  handleRejectPost();
+                }
               }}
-              className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white"
+              disabled={loading || !reason.trim()}
+              className="px-4 py-2 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Từ chối
             </button>
             <button
-              onClick={handleApprovePost}
-              className="px-4 py-2 text-sm rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white"
+              onClick={() => handleApprovePost()}
+              disabled={loading}
+              className="px-4 py-2 text-sm rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Duyệt
+              {loading && (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              )}
+              {loading ? "Đang xử lý..." : "Duyệt"}
             </button>
           </div>
         </div>

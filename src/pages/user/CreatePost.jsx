@@ -40,15 +40,19 @@ export default function CreatePost() {
     scheduledTime: "",
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
       const { postOption, scheduledTime, ...filteredValues } = values;
+
       const formData = new FormData();
       formData.append("caption", filteredValues.caption);
       formData.append("hashtags", filteredValues.hashtags);
       filteredValues.socialAccountIds.forEach((id) => {
+        console.log(id);
+
         formData.append("socialAccountIds", id);
       });
+      // formData.append("socialAccountIds", filteredValues.socialAccountIds);
       if (filteredValues.files && filteredValues.files.length > 0) {
         filteredValues.files.forEach((file) => {
           if (file instanceof File) {
@@ -58,10 +62,11 @@ export default function CreatePost() {
           }
         });
       }
-
       const response = await post.createPost(formData);
-      if (response.status === 201) {
+      if (response?.status === 201) {
         toast.success("Bài viết đã ở trạng thái chờ duyệt từ quản trị viên.");
+        resetForm();
+        setSelectedPlatforms([]);
       }
       console.log("Kết quả API:", response);
     } catch (error) {
@@ -77,7 +82,6 @@ export default function CreatePost() {
   );
   return (
     <div className=" min-h-screen mt-16">
-     
       <Formik
         initialValues={initialValues}
         validationSchema={createPostValidate}
@@ -94,7 +98,7 @@ export default function CreatePost() {
                 as="textarea"
                 id="caption"
                 name="caption"
-                className="w-full border rounded-lg p-3 h-24 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full border rounded-lg p-3 h-48 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="Nhập nội dung bài đăng..."
               />
               <ErrorMessage

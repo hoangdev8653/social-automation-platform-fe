@@ -18,4 +18,7 @@ export const PATH = {
   MEDIA: "/dashboard/media",
   POST: "/dashboard/post",
   TEMPLATE_ADMIN: "/dashboard/template",
+
+  // Not Found
+  NOTFOUND: "*",
 };

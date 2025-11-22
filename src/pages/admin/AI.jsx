@@ -13,31 +13,7 @@ import {
 } from "lucide-react";
 import { AiConversationStore } from "../../store/ai-conversation";
 import { AiMessageStore } from "../../store/ai-message";
-
-// Component cho hiệu ứng "đang gõ"
-const TypingIndicator = () => (
-  <div className="flex justify-start">
-    <div className="px-4 py-3 rounded-xl max-w-[70%] bg-gray-100 text-gray-800 flex items-center gap-1.5">
-      <style>
-        {`
-          .typing-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #9ca3af;
-            border-radius: 50%;
-            animation: typing 1s infinite ease-in-out;
-          }
-          .typing-dot:nth-of-type(2) { animation-delay: 0.15s; }
-          .typing-dot:nth-of-type(3) { animation-delay: 0.3s; }
-          @keyframes typing { 0%, 100% { opacity: 0.3; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1); } }
-        `}
-      </style>
-      <div className="typing-dot"></div>
-      <div className="typing-dot"></div>
-      <div className="typing-dot"></div>
-    </div>
-  </div>
-);
+import TypingIndicator from "../../components/TypingIndicator";
 
 export default function AI() {
   // --- STATE MỚI ---
@@ -63,7 +39,6 @@ export default function AI() {
     if (AIConversation.data?.content) {
       const conversationsFromApi = AIConversation.data.content.reduce(
         (acc, convo) => {
-          // Đảm bảo messages là một mảng, nếu không có thì khởi tạo rỗng
           acc[convo.id] = { ...convo, messages: convo.messages || [] };
           return acc;
         },
@@ -71,17 +46,11 @@ export default function AI() {
       );
       setAllConversations(conversationsFromApi);
 
-      // --- FIX: Tự động chọn cuộc hội thoại gần nhất sau khi tải lại ---
-      const conversationIds = Object.keys(conversationsFromApi);
-      if (conversationIds.length > 0) {
-        // Giả sử API trả về danh sách đã được sắp xếp, phần tử cuối là mới nhất
-        // Hoặc chúng ta có thể tìm cái mới nhất dựa trên `updatedAt`
-        const latestConversationId =
-          conversationIds[conversationIds.length - 1];
-        setActiveConversationId(latestConversationId);
-      }
+      // --- FIX: KHÔNG auto select conversation cũ
+      // Giữ activeConversationId mặc định là "new"
+      setActiveConversationId("new");
     }
-  }, [AIConversation.data]); // Giữ nguyên dependency
+  }, [AIConversation.data]);
 
   // --- STATE PHÁI SINH ---
   // Lấy ra danh sách tin nhắn cho cuộc trò chuyện đang được chọn
@@ -92,9 +61,11 @@ export default function AI() {
     return allConversations[activeConversationId]?.messages || [];
   }, [allConversations, activeConversationId]);
 
-  // Lấy ra danh sách các cuộc hội thoại để render (biến object thành mảng)
+  // // Lấy ra danh sách các cuộc hội thoại để render (biến object thành mảng)
   const conversationList = useMemo(() => {
-    return Object.values(allConversations).reverse(); // Đảo ngược để thấy cái mới nhất
+    return Object.values(allConversations).sort(
+      (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+    ); // mới nhất lên đầu
   }, [allConversations]);
 
   // --- LOGIC MỚI ---
@@ -141,8 +112,7 @@ export default function AI() {
       };
 
       // Gọi API để gửi tin nhắn và nhận phản hồi
-      const response = await AIMessage.createMessage(payload); // Giả định hàm này tồn tại
-      console.log(response);
+      await AIMessage.createMessage(payload); // Giả định hàm này tồn tại
 
       // --- FIX: Lấy dữ liệu từ cấu trúc API đúng ---
       // API trả về { content: {..., conversation_id: '...'} }
@@ -245,7 +215,7 @@ export default function AI() {
     if (activeConversationId === "new") {
       return; // Không có gì để xóa
     }
-    //  await AIConversation.deleteConversation(activeConversationId)
+    await AIConversation.deleteConversation(activeConversationId);
 
     // Xóa khỏi state
     setAllConversations((prev) => {
@@ -280,10 +250,6 @@ export default function AI() {
           >
             <Trash2 size={16} />
             Xóa cuộc trò chuyện
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition">
-            <Download size={16} />
-            Xuất chat
           </button>
         </div>
       </div>
