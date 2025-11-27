@@ -54,6 +54,17 @@ export default function User() {
     return matchesRole && matchesSearch;
   });
 
+  // Tính toán số lượng người dùng mới trong tháng
+  const newUsersThisMonth =
+    user.data?.data?.filter((u) => {
+      const userCreationDate = new Date(u.createdAt);
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      return (
+        userCreationDate.getMonth() === currentMonth &&
+        userCreationDate.getFullYear() === currentYear
+      );
+    }).length || 0;
   const handleResetPassword = async (id) => {
     setConfirmation({
       isOpen: true,
@@ -117,15 +128,6 @@ export default function User() {
             Quản lý nhân viên
           </h1>
           <div className="flex gap-3">
-            <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
-              <UsersRound size={16} /> Quản lý Vai trò
-            </button>
-            <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
-              <Download size={16} /> Export
-            </button>
-            <button className="bg-white border border-gray-300 hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
-              <Upload size={16} /> Import
-            </button>
             <button
               onClick={() => setIsAddUserOpen(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium"
@@ -166,7 +168,7 @@ export default function User() {
             </div>
             <div>
               <p className="text-sm text-gray-500">Mới trong tháng</p>
-              <h2 className="text-2xl font-bold">2</h2>
+              <h2 className="text-2xl font-bold">{newUsersThisMonth}</h2>
             </div>
           </div>
         </div>
@@ -259,26 +261,30 @@ export default function User() {
                   </td>
                   <td className="p-4 text-center">
                     <button
+                      title="Chỉnh sửa vai trò"
                       onClick={() => setEditingUser(emp)}
-                      className="p-2 hover:bg-gray-100 rounded-full"
+                      className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
                     >
                       <Edit size={16} className="text-blue-600" />
                     </button>
                     <button
+                      title="Đặt lại mật khẩu"
                       onClick={() => handleResetPassword(emp.id)}
-                      className="p-2 hover:bg-gray-100 rounded-full"
+                      className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
                     >
                       <KeyRound size={16} className="text-yellow-600" />
                     </button>
                     <button
+                      title="Khóa tài khoản"
                       onClick={() => handleLockAccount(emp.id)}
-                      className="p-2 hover:bg-gray-100 rounded-full"
+                      className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
                     >
                       <Lock size={16} className="text-gray-600" />
                     </button>
                     <button
+                      title="Xóa nhân viên"
                       onClick={() => handleDeleteAccount(emp.id)}
-                      className="p-2 hover:bg-gray-100 rounded-full"
+                      className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
                     >
                       <Trash2 size={16} className="text-red-600" />
                     </button>

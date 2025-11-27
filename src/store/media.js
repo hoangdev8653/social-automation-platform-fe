@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { deleteMedia, getAllMedia, getMediaById } from "../apis/media";
+import { ITEMS_PER_PAGE, PAGE_DEFAUT } from "../utils/constants";
 
 export const mediaStore = create((set, get) => ({
   data: [],
@@ -7,10 +8,10 @@ export const mediaStore = create((set, get) => ({
   error: null,
   loading: false,
 
-  getAllMedia: async () => {
+  getAllMedia: async ({ page = PAGE_DEFAUT, limit = ITEMS_PER_PAGE } = {}) => {
     try {
       set({ loading: true, error: null });
-      const response = await getAllMedia();
+      const response = await getAllMedia({ page, limit });
       set({ data: response.data, loading: false });
       return response;
     } catch (error) {

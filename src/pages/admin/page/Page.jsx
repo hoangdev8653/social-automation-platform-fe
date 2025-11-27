@@ -139,11 +139,6 @@ export default function Page() {
             <option value="Youtube">YouTube</option>
             <option value="Twitter">Twitter</option>
           </select>
-          <select className="border border-gray-200 rounded-lg px-3 py-2 bg-white">
-            <option>Tất cả trạng thái</option>
-            <option>Kết nối</option>
-            <option>Ngắt kết nối</option>
-          </select>
         </div>
 
         {/* Page List */}
@@ -154,26 +149,6 @@ export default function Page() {
               className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col"
             >
               <div className="flex items-center gap-4 mb-4">
-                {/* <img
-                  // src={
-                  //   page.account_image
-                  //     ? page.account_image
-                  //     : `https://graph.facebook.com/${page.account_id}/picture?access_token=${page.access_token}`
-                  // }
-                  src={
-                    page.platform === "facebook" ||
-                    /^[0-9]+$/.test(page.account_id)
-                      ? `https://graph.facebook.com/${page.account_id}/picture?type=large`
-                      : page.account_image
-                  }
-                  alt={page.account_name}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    // fallback cuối cùng khi ảnh facebook lỗi
-                    e.target.src = page.account_image || "/default-avatar.png";
-                  }}
-                  className="w-16 h-16 rounded-full object-cover border border-gray-100"
-                /> */}
                 <AvatarFanpage page={page} />
                 <div className="flex items-center gap-3">
                   <div>

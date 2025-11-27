@@ -6,6 +6,7 @@ import { userStore } from "../../store/user";
 import { socialAccountStore } from "../../store/socialAccount";
 import { notificationStore } from "../../store/notification";
 import { Link } from "react-router-dom";
+import { activityStore } from "../../store/activity";
 
 const Dashboard = () => {
   const media = mediaStore();
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const user = userStore();
   const socialAccount = socialAccountStore();
   const notification = notificationStore();
+  const activity = activityStore();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,11 +23,10 @@ const Dashboard = () => {
       await user.getAllUser();
       await socialAccount.getAllSocialAccount();
       await notification.getAllNotification();
+      await activity.getAllActivity();
     };
     fetchData();
   }, []);
-
-  console.log(notification?.data?.content);
 
   return (
     <div className=" bg-gray-50 min-h-screen mt-16">
@@ -112,16 +113,16 @@ const Dashboard = () => {
       {/* Recent Activity */}
       <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">
-          Thông báo gần đây
+          Hoạt động gần đây
         </h2>
-        {notification?.data?.content?.slice(0, 5).map((item, index) => (
+        {activity?.data?.map((item, index) => (
           <div
             key={index}
             className="flex justify-between items-center border-b pb-3 mb-3  border-gray-200"
           >
-            <p className="text-gray-700">{item?.message}</p>
+            <p className="text-gray-700">{item?.details}</p>
             <span className="text-green-600 text-sm bg-green-50 px-3 py-1 rounded-full">
-              Thành công
+              {item?.action}
             </span>
           </div>
         ))}

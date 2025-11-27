@@ -1,241 +1,187 @@
 import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Upload,
-  UploadCloud,
-  Eye,
-  Edit2,
-  Download,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Eye, Download, Trash2, X, Upload, Search } from "lucide-react";
 import { mediaStore } from "../../store/media";
 import Notification from "../../utils/notification";
+import Paginate from "../../components/Paginate";
+import { ITEMS_PER_PAGE } from "../../utils/constants";
 
 const Media = () => {
-  const [view, setView] = useState("grid");
-  const [viewingMedia, setViewingMedia] = useState(null); // State để quản lý media đang xem
+  const [viewingMedia, setViewingMedia] = useState(null);
+  const [filterType, setFilterType] = useState("all");
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
   const media = mediaStore();
 
   useEffect(() => {
     const fetchData = async () => {
-      await media.getAllMedia();
+      const response = await media.getAllMedia({ page, limit: ITEMS_PER_PAGE });
+      setTotalPages(response?.data?.totalPages || 1);
     };
+
     fetchData();
-  }, []);
+  }, [page, filterType]);
 
-  // ===> TÍNH TOÁN THỐNG KÊ DỰA TRÊN DỮ LIỆU THẬT
-  const images = media.data?.content?.filter((m) => m.type === "image") || [];
-  const videos = media.data?.content?.filter((m) => m.type === "video") || [];
-  const audios = media.data?.content?.filter((m) => m.type === "audio") || [];
+  const content = media.data?.content || [];
 
+  const filteredMedia =
+    filterType === "all"
+      ? content
+      : content.filter((m) => m.type === filterType);
+
+  const images = content.filter((m) => m.type === "image") || [];
+  const videos = content.filter((m) => m.type === "video") || [];
+  const audios = content.filter((m) => m.type === "audio") || [];
   const totalSizeInBytes =
-    media.data?.content?.reduce((sum, m) => sum + (m.metadata?.size || 0), 0) ||
-    0;
-  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(2);
+    content.reduce((sum, m) => sum + (m.metadata?.size || 0), 0) || 0;
+  const totalSizeInMB = (totalSizeInBytes / (1024 * 1024)).toFixed(2);
 
   const stats = [
     { title: "Hình ảnh", count: images.length, icon: "🖼️" },
     { title: "Video", count: videos.length, icon: "🎥" },
     { title: "Audio", count: audios.length, icon: "🎧" },
-    { title: "GB đã dùng", count: totalSizeInGB, icon: "💾" },
+    { title: "GB đã dùng", count: totalSizeInMB, icon: "💾" },
   ];
+
+  // --- DOWNLOAD KHÔNG GỌI API ---
+  const handleDownload = (url, filename) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename || "download");
+    link.target = "_blank"; // Mở tab mới nếu browser chặn download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const handleDelete = async (id) => {
     const response = await media.deleteMedia(id);
-    if (response?.status) {
+    if (response?.status == 200) {
       Notification("success", "Xóa thành công");
+      await media.getAllMedia({ page, limit: ITEMS_PER_PAGE });
     }
   };
 
   return (
     <div className="mt-16">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Thư viện Media</h1>
-        <div className="flex gap-3">
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700">
-            <UploadCloud size={18} /> Upload Media
-          </button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700">
-            <Upload size={18} /> Bulk Upload
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Quản lý Media</h1>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium">
+          <Upload size={16} /> Tải lên Media
+        </button>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        {stats.map((item, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        {stats.map((stat, index) => (
           <div
-            key={i}
-            className="bg-white shadow rounded-xl p-5 flex flex-col items-center"
+            key={index}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4"
           >
-            <span className="text-4xl">{item.icon}</span>
-            <p className="text-2xl font-bold mt-2">{item.count}</p>
-            <p className="text-gray-600">{item.title}</p>
+            <div className="text-4xl">{stat.icon}</div>
+            <div>
+              <p className="text-sm text-gray-500">{stat.title}</p>
+              <h2 className="text-2xl font-bold">{stat.count}</h2>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <select className="border rounded-lg px-3 py-2">
-          <option>Tất cả loại</option>
-          <option>Hình ảnh</option>
-          <option>Video</option>
-          <option>Audio</option>
-        </select>
-
-        <select className="border rounded-lg px-3 py-2">
-          <option>Tất cả thời gian</option>
-          <option>Tuần này</option>
-          <option>Tháng này</option>
-        </select>
-
-        <input
-          type="text"
-          placeholder="Tìm kiếm media..."
-          className="flex-1 border rounded-lg px-3 py-2"
-        />
-
-        <button className="bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-800">
-          <Search size={16} /> Lọc
-        </button>
-
-        <div className="ml-auto flex gap-2">
-          <button
-            onClick={() => setView("grid")}
-            className={`p-2 rounded-lg ${
-              view === "grid" ? "bg-blue-100" : "bg-gray-100"
-            }`}
-          >
-            🟦
-          </button>
-          <button
-            onClick={() => setView("list")}
-            className={`p-2 rounded-lg ${
-              view === "list" ? "bg-blue-100" : "bg-gray-100"
-            }`}
-          >
-            📋
-          </button>
+      {/* Filters */}
+      <div className="bg-white border-gray-100 p-4 rounded-xl shadow-sm border flex flex-wrap items-center gap-3 mb-6">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            size={18}
+          />
+          <input
+            type="text"
+            placeholder="Tìm kiếm media..."
+            className="border border-gray-200 rounded-lg px-3 py-2 pl-10 w-full focus:ring-2 focus:ring-blue-200 outline-none"
+          />
         </div>
+
+        <select
+          className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200"
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+        >
+          <option value="all">Tất cả loại</option>
+          <option value="image">Hình ảnh</option>
+          <option value="video">Video</option>
+          <option value="audio">Audio</option>
+        </select>
       </div>
 
-      {/* Media Grid */}
-      {view === "grid" ? (
-        <div className="grid grid-cols-5 gap-4">
-          {media?.data?.content?.length === 0 ? (
-            <p className="text-gray-500">Không có media nào</p>
-          ) : (
-            media?.data?.content?.map((m, index) => (
-              <div
-                key={index}
-                className="bg-white shadow rounded-lg overflow-hidden"
-              >
-                <div className="relative">
-                  {m.type === "video" ? (
-                    <video
-                      src={m.url}
-                      className="w-full h-40 object-cover"
-                      controls
-                    />
-                  ) : (
-                    <img
-                      src={m.url}
-                      alt={m.metadata?.filename}
-                      className="w-full h-40 object-cover"
-                    />
-                  )}
-                  <span
-                    className={`absolute top-2 right-2 text-white text-xs font-bold px-2 py-1 rounded ${
-                      m.type === "image"
-                        ? "bg-blue-600"
-                        : m.type === "video"
-                        ? "bg-green-600"
-                        : "bg-gray-600"
-                    }`}
-                  >
-                    {m.type.toUpperCase()}
-                  </span>
-                </div>
-                <div className="p-3 text-sm">
-                  <p className="font-semibold truncate">
-                    {m.metadata?.filename}
-                  </p>
-                  <p className="text-gray-500 text-xs">
-                    {(m.metadata?.size / 1024).toFixed(1)} KB
-                  </p>
-                  <p className="text-gray-400 text-xs">
-                    {new Date(m.createdAt).toLocaleString("vi-VN")}
-                  </p>
-
-                  <div className="flex justify-around mt-2 text-gray-600">
-                    <Eye
-                      size={16}
-                      onClick={() => setViewingMedia(m)}
-                      className="cursor-pointer hover:text-blue-600"
-                    />
-                    <Edit2
-                      size={16}
-                      className="cursor-pointer hover:text-green-600"
-                    />
-                    <Download
-                      size={16}
-                      className="cursor-pointer hover:text-purple-600"
-                      onClick={() => window.open(m.url, "_blank")}
-                    />
-                    <Trash2
-                      onClick={() => handleDelete(m.id)}
-                      size={16}
-                      className="cursor-pointer hover:text-red-600"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      ) : (
-        <div>List View Coming Soon</div>
-      )}
-
-      {/* Modal xem trước Media */}
-      {viewingMedia && (
-        <div
-          className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
-          onClick={() => setViewingMedia(null)}
-        >
+      {/* GRID MEDIA */}
+      <div className="grid grid-cols-5 gap-4">
+        {filteredMedia.map((m, index) => (
           <div
-            className="bg-white rounded-lg shadow-xl p-4 relative max-w-4xl max-h-[90vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
+            key={index}
+            className="bg-white shadow rounded-lg overflow-hidden"
           >
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold text-lg truncate">
-                {viewingMedia.metadata?.filename}
-              </h3>
-              <button
-                onClick={() => setViewingMedia(null)}
-                className="p-1 rounded-full hover:bg-gray-200"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex-1 flex items-center justify-center overflow-hidden">
-              {viewingMedia.type === "video" ? (
+            <div className="relative">
+              {m.type === "video" ? (
                 <video
-                  src={viewingMedia.url}
-                  className="max-w-full max-h-full"
+                  src={m.url}
+                  className="w-full h-40 object-cover"
                   controls
-                  autoPlay
                 />
               ) : (
-                <img src={viewingMedia.url} className="max-w-full max-h-full" />
+                <img src={m.url} className="w-full h-40 object-cover" />
               )}
             </div>
+
+            <div className="p-3 text-sm">
+              <p className="truncate">{m.metadata?.filename}</p>
+
+              <div className="flex justify-around mt-2">
+                <Eye
+                  size={16}
+                  onClick={() => setViewingMedia(m)}
+                  className="cursor-pointer hover:text-blue-500"
+                />
+                {/* Gọi hàm Download đơn giản */}
+                <Download
+                  size={16}
+                  onClick={() => handleDownload(m.url, m.metadata?.filename)}
+                  className="cursor-pointer hover:text-green-600"
+                />
+                <Trash2
+                  size={16}
+                  onClick={() => handleDelete(m.id)}
+                  className="cursor-pointer hover:text-red-500"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {viewingMedia && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="relative bg-white p-4 rounded-lg max-w-3xl max-h-[90vh]">
+            <button
+              onClick={() => setViewingMedia(null)}
+              className="absolute -top-4 -right-4 bg-white rounded-full p-1 shadow-lg"
+            >
+              <X />
+            </button>
+            {viewingMedia.type === "video" ? (
+              <video src={viewingMedia.url} className="max-h-[80vh]" controls />
+            ) : (
+              <img
+                src={viewingMedia.url}
+                className="max-h-[80vh] object-contain"
+              />
+            )}
           </div>
         </div>
       )}
+
+      <Paginate
+        pageCount={totalPages}
+        onPageChange={(newPage) => setPage(newPage.selected + 1)}
+      />
     </div>
   );
 };

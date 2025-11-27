@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { LogOut, Home, PlusSquare, Bot, LayoutTemplate } from "lucide-react";
 import { PATH } from "../../utils/path";
-import Notification from "../../templates/Notification";
+import Notification from "../Notification";
 import { getLocalStorage } from "../../utils/localStorage";
 import { authStore } from "../../store/auth";
 import { useNavigate } from "react-router-dom";
+import Logo from "../../assets/logo.png";
 
 const navItems = [
   { to: PATH.USER_LAYOUT, icon: <Home size={18} />, label: "Trang chủ" },
@@ -34,9 +35,10 @@ const Header = () => {
           {/* Left - Logo */}
           <NavLink
             to={PATH.USER_LAYOUT}
-            className="text-2xl font-bold text-blue-600"
+            className="flex items-center shrink-0 text-2xl font-bold text-blue-600"
           >
-            Logo
+            {/* Logo */}
+            <img src={Logo} alt="Logo" className="w-24  object-contain" />
           </NavLink>
 
           {/* Center - Nav */}

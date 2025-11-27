@@ -8,6 +8,7 @@ import {
   getPostByUser,
   rejectPost,
 } from "../apis/post";
+import { ITEMS_PER_PAGE, PAGE_DEFAUT } from "../utils/constants";
 
 export const postStore = create((set, get) => ({
   data: [],
@@ -15,10 +16,10 @@ export const postStore = create((set, get) => ({
   error: null,
   loading: false,
 
-  getAllPost: async () => {
+  getAllPost: async ({ page = PAGE_DEFAUT, limit = ITEMS_PER_PAGE } = {}) => {
     try {
       set({ loading: true, error: null });
-      const response = await getAllPost();
+      const response = await getAllPost({ page, limit });
       set({ data: response.data, loading: false });
       return response;
     } catch (error) {

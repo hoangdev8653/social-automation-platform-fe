@@ -37,14 +37,14 @@ const ConfirmationModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 cursor-pointer"
           >
             {cancelText}
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`px-4 py-2 text-white rounded-lg ${confirmButtonClass}`}
+            className={`px-4 py-2 text-white rounded-lg cursor-pointer ${confirmButtonClass}`}
           >
             {confirmText}
           </button>

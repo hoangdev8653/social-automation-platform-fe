@@ -1,9 +1,9 @@
 import { axiosConfig } from "../axiosConfig";
 
-export const getAllTemplate = async () => {
+export const getAllTemplate = async ({ page, limit }) => {
   return await axiosConfig({
     method: "get",
-    url: "template",
+    url: `template?page=${page}&limit=${limit}`,
   });
 };
 

@@ -5,6 +5,7 @@ import {
   getAllTemplate,
   getTemplateById,
 } from "../apis/template";
+import { ITEMS_PER_PAGE, PAGE_DEFAUT } from "../utils/constants";
 
 export const templateStore = create((set, get) => ({
   data: [],
@@ -12,11 +13,15 @@ export const templateStore = create((set, get) => ({
   error: null,
   loading: false,
 
-  getAllTemplate: async () => {
+  getAllTemplate: async ({
+    page = PAGE_DEFAUT,
+    limit = ITEMS_PER_PAGE,
+  } = {}) => {
     try {
       set({ loading: true, error: null });
-      const response = await getAllTemplate();
+      const response = await getAllTemplate({ page, limit });
       set({ data: response?.data?.content, loading: false });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

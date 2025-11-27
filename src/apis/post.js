@@ -1,9 +1,9 @@
 import { axiosConfig } from "../axiosConfig";
 
-export const getAllPost = async () => {
+export const getAllPost = async ({ page, limit }) => {
   return await axiosConfig({
     method: "get",
-    url: "post",
+    url: `post?page=${page}&limit=${limit}`,
   });
 };
 

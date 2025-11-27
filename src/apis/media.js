@@ -1,9 +1,9 @@
 import { axiosConfig } from "../axiosConfig";
 
-export const getAllMedia = async () => {
+export const getAllMedia = async ({ page, limit }) => {
   return await axiosConfig({
     method: "get",
-    url: "media",
+    url: `media?page=${page}&limit=${limit}`,
   });
 };
 

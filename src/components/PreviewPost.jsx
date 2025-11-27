@@ -18,8 +18,6 @@ export default function PreviewPost({ isOpen, onClose, postId }) {
       }
     }
   }, [postId]);
-  console.log(postDetail);
-
   if (!isOpen) return null;
 
   return (

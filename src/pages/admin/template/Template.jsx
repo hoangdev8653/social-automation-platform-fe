@@ -5,6 +5,7 @@ import CreateTemplate from "./CreateTemplate";
 import UpdateTemplate from "./UpdateTemplate";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import Notification from "../../../utils/notification";
+import Paginate from "../../../components/Paginate";
 
 export default function Template() {
   const template = templateStore();
@@ -12,6 +13,9 @@ export default function Template() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [templateTypeToCreate, setTemplateTypeToCreate] = useState(null);
   const [editingTemplate, setEditingTemplate] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [dataTemplate, setDataTemplate] = useState([]);
   const [confirmation, setConfirmation] = useState({
     isOpen: false,
     title: "",
@@ -24,19 +28,19 @@ export default function Template() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await template.getAllTemplate();
+        const params = { page, limit: 5 };
+        if (filter !== "all") {
+          params.type = filter;
+        }
+        const response = await template.getAllTemplate(params);
+        setTotalPages(response?.data?.totalPages || 1);
+        setDataTemplate(response?.data?.content || []);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
     };
     fetchData();
-  }, []);
-
-  const filteredTemplates =
-    template.data?.filter((t) => {
-      if (filter === "all") return true;
-      return t.type === filter;
-    }) || [];
+  }, [page, filter]);
 
   const handleUseTemplate = async (content) => {
     try {
@@ -151,8 +155,8 @@ export default function Template() {
 
       {/* Danh sách templates */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredTemplates.length > 0 ? (
-          filteredTemplates.map((t, index) => (
+        {dataTemplate.length > 0 ? (
+          dataTemplate.map((t, index) => (
             <div
               key={index}
               className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
@@ -258,6 +262,10 @@ export default function Template() {
         onClose={closeConfirmation}
         confirmText={confirmation.confirmText}
         confirmButtonClass={confirmation.confirmButtonClass}
+      />
+      <Paginate
+        pageCount={totalPages}
+        onPageChange={(newPage) => setPage(newPage.selected + 1)}
       />
     </div>
   );

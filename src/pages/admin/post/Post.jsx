@@ -8,6 +8,8 @@ import PreviewPost from "../../../components/PreviewPost";
 import ApprovePost from "./ApprovePost";
 import ConfirmationModal from "../../../components/ConfirmationModal";
 import { toast } from "react-toastify";
+import { ITEMS_PER_PAGE } from "../../../utils/constants";
+import Paginate from "../../../components/Paginate";
 
 const Post = () => {
   const [open, setOpen] = useState(false);
@@ -16,14 +18,20 @@ const Post = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [dataPost, setDataPost] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      await post.getAllPost();
-      await postTarget.getAllPostTaget();
+      await post.getAllPost({ page, limit: 5 });
+
+      const response = await postTarget.getAllPostTaget({ page, limit: 5 });
+      setDataPost(response?.data?.content || []);
+      setTotalPages(response?.data?.totalPages || 1);
     };
     fetchData();
-  }, []);
+  }, [page]);
 
   const handlePreview = (postId) => {
     setSelectedPost(postId);
@@ -130,7 +138,7 @@ const Post = () => {
           </thead>
           <tbody>
             {Object.values(
-              (postTarget?.data?.content || []).reduce((acc, item) => {
+              dataPost.reduce((acc, item) => {
                 const postId = item.Post.id;
                 if (!acc[postId]) {
                   acc[postId] = {
@@ -278,6 +286,10 @@ const Post = () => {
         onConfirm={confirmation.onConfirm}
         onClose={closeConfirmation}
         confirmText="Xóa"
+      />
+      <Paginate
+        pageCount={totalPages}
+        onPageChange={(newPage) => setPage(newPage.selected + 1)}
       />
     </div>
   );

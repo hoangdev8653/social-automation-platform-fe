@@ -5,6 +5,7 @@ import Notification from "../../templates/Notification";
 import { getLocalStorage } from "../../utils/localStorage";
 import { authStore } from "../../store/auth";
 import { useNavigate } from "react-router-dom";
+import Logo from "../../assets/logo.png";
 
 const Header = () => {
   const user = getLocalStorage("user");
@@ -20,12 +21,12 @@ const Header = () => {
     <header className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Left - Logo */}
           <NavLink
             to={PATH.USER_LAYOUT}
-            className="text-2xl font-bold text-blue-600"
+            className="flex items-center shrink-0 text-2xl font-bold text-blue-600"
           >
-            Logo
+            {/* Logo */}
+            <img src={Logo} alt="Logo" className="w-24  object-contain" />
           </NavLink>
 
           {/* Center - Nav */}

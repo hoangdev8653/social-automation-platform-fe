@@ -137,13 +137,17 @@ export default function Analytic() {
                       <td className="py-4 px-4 text-gray-700">
                         {post.accountName}
                       </td>
-                      <td className="py-4 px-4 text-gray-700">
+                      <td className="py-4 px-4 text-gray-700 text-center">
                         {post.engagement.total}
                       </td>
 
                       <td className="py-4 px-4">
                         <span className={`font-semibold `}>
-                          {(post.engagement.total / totalEngagement) * 100} %
+                          {(
+                            (post.engagement.total / totalEngagement) *
+                            100
+                          ).toFixed(2)}
+                          %
                         </span>
                       </td>
                     </tr>
@@ -185,7 +189,7 @@ export default function Analytic() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Tỉ lệ:</span>
                   <span className={`text-2xl font-bold `}>
-                    {item.engagement_percentage}
+                    {item.engagement_percentage}%
                   </span>
                 </div>
               </div>
