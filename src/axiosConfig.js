@@ -5,52 +5,91 @@ import {
   setLocalStorage,
   clearLocalStorage,
 } from "./utils/localStorage";
+
 export const axiosConfig = axios.create({
   baseURL: BASE_URL_LOCAL,
 });
 
+// ========================
+// Request Interceptor
+// ========================
 axiosConfig.interceptors.request.use(
-  function (config) {
+  (config) => {
     const accessToken = getLocalStorage("accessToken");
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
   },
-  function (error) {
-    console.log(error.message);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
+// ========================
+// Refresh Token Logic
+// ========================
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 axiosConfig.interceptors.response.use(
   (response) => response,
+
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+
+    // Nếu 401 thì refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
+      // Nếu đang refresh → chờ refresh xong
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = "Bearer " + token;
+            return axiosConfig(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      // Nếu chưa refresh → gọi API refresh
+      isRefreshing = true;
+
       try {
-        const refreshToken = getLocalStorage("refreshToken");
-        if (!refreshToken) {
-          console.error("Refresh token is missing");
-          return Promise.reject(error);
-        }
-        const response = await axios.post(
+        // Thêm withCredentials: true để gửi cookie chứa refreshToken
+        const res = await axios.post(
           `${BASE_URL_LOCAL}/auth/refresh-token`,
-          {
-            refreshToken,
-          }
+          {},
+          { withCredentials: true }
         );
-        const accessToken = response.data.newToken.accessToken;
-        if (!accessToken) {
-          console.error("accessToken token is missing");
-          return Promise.reject(error);
-        }
-        setLocalStorage("accessToken", accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return axios(originalRequest);
-      } catch (error) {
-        console.log(error.message);
+
+        const newAccessToken = res.data.accessToken;
+        setLocalStorage("accessToken", newAccessToken);
+
+        processQueue(null, newAccessToken);
+
+        originalRequest.headers.Authorization = "Bearer " + newAccessToken;
+
+        return axiosConfig(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
         clearLocalStorage();
+        // Chuyển hướng về trang đăng nhập nếu refresh token thất bại
+        window.location.href = "/login";
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 

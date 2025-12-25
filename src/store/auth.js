@@ -29,7 +29,6 @@ export const authStore = create((set) => ({
       set({ loading: false, data: response.data });
       setLocalStorage("user", response.data.content);
       setLocalStorage("accessToken", response.data.accessToken);
-      setLocalStorage("refreshToken", response.data.refreshToken);
       return response;
     } catch (error) {
       const errorMessage =

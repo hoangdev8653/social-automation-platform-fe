@@ -2,20 +2,23 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { postStore } from "../../../store/post";
 import Notification from "../../../utils/notification";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const ApprovePost = ({ isOpen, onClose, postId, onActionComplete }) => {
+  const Navigate = useNavigate();
   const [reason, setReason] = useState("");
   const { approvePost, rejectPost, loading } = postStore();
   if (!isOpen) return null;
 
   const handleApprovePost = async () => {
     const response = await approvePost(postId);
-    console.log(response);
 
     if (response?.status == 200) {
+      setTimeout(() => {
+        Navigate("/dashboard/post");
+      }, 3000);
       Notification("success", "Bài viết đã được đăng lên các nền tảng");
-      onClose(); // Đóng modal
+      onClose();
     } else {
       Notification("error", "Bài viết không thể đăng lên các nền tảng");
     }
@@ -26,7 +29,7 @@ const ApprovePost = ({ isOpen, onClose, postId, onActionComplete }) => {
     const response = await rejectPost(postId, reason);
     if (response.status == 200) {
       Notification("success", "Bài viết đã được từ chối xét duyệt");
-      onClose(); // Đóng modal
+      onClose();
     } else {
       Notification("error", "Từ chối bài viết thất bại");
     }

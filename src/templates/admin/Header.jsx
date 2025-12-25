@@ -1,13 +1,13 @@
-import { NavLink } from "react-router-dom";
-import { LogOut, Home, PlusSquare, Bot, LayoutTemplate } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { LogOut, Menu } from "lucide-react"; // <--- NHỚ IMPORT ICON MENU
 import { PATH } from "../../utils/path";
 import Notification from "../../templates/Notification";
 import { getLocalStorage } from "../../utils/localStorage";
 import { authStore } from "../../store/auth";
-import { useNavigate } from "react-router-dom";
 import Logo from "../../assets/logo.png";
 
-const Header = () => {
+// Nhận prop toggleSidebar từ LayoutAdmin
+const Header = ({ toggleSidebar }) => {
   const user = getLocalStorage("user");
   const auth = authStore();
   const navigate = useNavigate();
@@ -18,41 +18,48 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <NavLink
-            to={PATH.USER_LAYOUT}
-            className="flex items-center shrink-0 text-2xl font-bold text-blue-600"
-          >
-            {/* Logo */}
-            <img src={Logo} alt="Logo" className="w-24  object-contain" />
-          </NavLink>
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white shadow-sm h-16">
+      <div className="container mx-auto px-4 h-full">
+        <div className="flex items-center justify-between h-full">
+          {/* --- KHU VỰC TRÁI: NÚT MENU + LOGO --- */}
+          <div className="flex items-center gap-3">
+            {/* ĐÂY LÀ NÚT BẠN ĐANG THIẾU */}
+            {/* lg:hidden nghĩa là ẩn trên Desktop, hiện trên Mobile */}
+            <button
+              onClick={toggleSidebar}
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg lg:hidden"
+            >
+              <Menu size={24} />
+            </button>
 
-          {/* Center - Nav */}
+            <NavLink
+              to={PATH.USER_LAYOUT}
+              className="flex items-center shrink-0 text-2xl font-bold text-blue-600"
+            >
+              <img
+                src={Logo}
+                alt="Logo"
+                className="w-20 sm:w-24 object-contain"
+              />
+            </NavLink>
+          </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Notification */}
+          {/* --- KHU VỰC PHẢI (Giữ nguyên code cũ của bạn) --- */}
+          <div className="flex items-center space-x-2 sm:space-x-4">
             <Notification />
-
-            {/* User */}
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <img
                 src="https://i.pravatar.cc/40"
                 alt="User Avatar"
-                className="w-10 h-10 rounded-full"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
               />
               <a href="/profile">
-                <div className="flex flex-col hover:opacity-70">
+                <div className="hidden sm:flex flex-col hover:opacity-70">
                   <p className="text-sm font-medium text-gray-700">
                     {user?.name}
                   </p>
                   <span className="text-xs text-gray-500 text-center">
-                    {(() => {
-                      if (user?.role === "admin") return "Người quản lí";
-                      if (user?.role === "user") return "Nhân viên";
-                      return user?.role;
-                    })()}
+                    {user?.role === "admin" ? "Người quản lí" : user?.role}
                   </span>
                 </div>
               </a>
@@ -60,10 +67,10 @@ const Header = () => {
 
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition"
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-2 py-2 sm:px-4 sm:py-2 rounded-lg font-medium transition"
             >
-              <LogOut className="w-4 h-4 mr-2" />
-              Đăng Xuất
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Đăng Xuất</span>
             </button>
           </div>
         </div>

@@ -7,7 +7,7 @@ export const getAllNotification = async () => {
   });
 };
 
-export const getNotificationByUser = async (id) => {
+export const getNotificationByUser = async () => {
   return await axiosConfig({
     method: "get",
     url: "notification/getByUser",

@@ -1,19 +1,49 @@
-import React, { useEffect, useState } from "react";
-import { FileText, Hash, Play } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
+import { FileText, Hash, Play } from "lucide-react"; // Giữ nguyên Play icon theo UI cũ của bạn
 import { templateStore } from "../../store/template";
-import { toast } from "react-toastify";
 import Notification from "../../utils/notification";
+import Paginate from "../../components/Paginate"; // Import component phân trang
 
 export default function Template() {
   const [filter, setFilter] = useState("all");
+
+  const [page, setPage] = useState(1);
+  const [rawData, setRawData] = useState([]);
+  const ITEMS_PER_PAGE = 6;
+
   const template = templateStore();
 
   useEffect(() => {
     const fetchData = async () => {
-      await template.getAllTemplate();
+      const response = await template.getAllTemplate({ page: 1, limit: 1000 });
+      setRawData(response?.data?.content || template.data || []);
     };
     fetchData();
   }, []);
+
+  const processedData = useMemo(() => {
+    let result = rawData;
+
+    if (filter !== "all") {
+      result = result.filter((item) => item.type === filter);
+    }
+
+    const totalItems = result.length;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const currentItems = result.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    return {
+      currentItems,
+      totalPages,
+      totalItems,
+    };
+  }, [rawData, filter, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter]);
 
   const handleUseTemplate = async (content) => {
     try {
@@ -25,27 +55,25 @@ export default function Template() {
     }
   };
 
-  const filteredTemplates =
-    template.data?.filter((t) => {
-      if (filter === "all") return true;
-      return t.type === filter;
-    }) || [];
-
   return (
     <div className="min-h-screen bg-gray-50 m-4">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-3">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600">
+          <button
+            onClick={() => setFilter("caption")}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-600 transition"
+          >
             <FileText size={16} /> Caption
           </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600">
+          <button
+            onClick={() => setFilter("hashtag")}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-600 transition"
+          >
             <Hash size={16} /> Hashtag
           </button>
         </div>
       </div>
 
-      {/* Bộ lọc */}
       <div className="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-3 items-center">
         <span className="font-medium text-gray-800 mr-2">
           Bộ lọc Templates:
@@ -82,15 +110,13 @@ export default function Template() {
         ))}
       </div>
 
-      {/* Danh sách templates */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredTemplates.length > 0 ? (
-          filteredTemplates.map((t) => (
+        {processedData.currentItems.length > 0 ? (
+          processedData.currentItems.map((t) => (
             <div
               key={t.id}
               className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
             >
-              {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
                   <div
@@ -126,14 +152,10 @@ export default function Template() {
                 </span>
               </div>
 
-              {/* Content */}
               <p className="text-sm text-gray-600 mt-3 line-clamp-3">
                 {t.content}
               </p>
 
-              {/* Footer */}
-
-              {/* Actions */}
               <div className="flex justify-between items-center mt-4">
                 <button
                   onClick={() => handleUseTemplate(t.content)}
@@ -141,18 +163,29 @@ export default function Template() {
                 >
                   <Play size={14} /> Sử dụng
                 </button>
-                <div className="flex justify-between items-center mt-4 text-sm text-gray-500">
+                <div className="text-sm text-gray-500">
                   <p>{new Date(t.createdAt).toLocaleDateString("vi-VN")}</p>
                 </div>
               </div>
             </div>
           ))
         ) : (
-          <p className="text-gray-500 text-center col-span-full">
-            ⏳ Đang tải dữ liệu hoặc chưa có template nào.
+          <p className="text-gray-500 text-center col-span-full py-10">
+            {rawData.length === 0
+              ? "⏳ Đang tải dữ liệu..."
+              : "Không tìm thấy kết quả nào."}
           </p>
         )}
       </div>
+
+      {processedData.totalPages > 1 && (
+        <div className="mt-8 flex justify-center pb-8">
+          <Paginate
+            pageCount={processedData.totalPages}
+            onPageChange={(e) => setPage(e.selected + 1)}
+          />
+        </div>
+      )}
     </div>
   );
 }

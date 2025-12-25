@@ -91,8 +91,9 @@ export const postStore = create((set, get) => ({
   deletePost: async (id) => {
     try {
       set({ loading: true, error: null });
-      await deletePost(id);
-      await get().getAllPost();
+      const response = await deletePost(id);
+      set({ loading: false, error: null });
+      return response;
     } catch (error) {
       console.log(error);
       set({ error: error.message, loading: false });

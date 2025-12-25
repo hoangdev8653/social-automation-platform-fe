@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { X, Globe, Link, ShieldCheck } from "lucide-react";
 
 const ConnectPage = ({ onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -15,34 +16,11 @@ const ConnectPage = ({ onClose, onSuccess }) => {
   };
 
   const handleOAuthConnect = () => {
-    // Tạo URL backend theo nền tảng
     const lowerPlatform = formData.platform.toLowerCase();
     const oauthUrl = `https://localhost:3007/api/v1/${lowerPlatform}`;
-
     const popup = window.open(oauthUrl, "_blank", "width=800,height=700");
 
-    // Lắng nghe message từ backend
-    // const listener = (event) => {
-    //   if (event.origin !== "https://localhost:3007") return;
-    //   if (event.data?.type === `${lowerPlatform}_success`) {
-    //     const { pageName, pageId, accessToken } = event.data;
-    //     setFormData((prev) => ({
-    //       ...prev,
-    //       pageName,
-    //       pageId,
-    //       accessToken,
-    //     }));
-    //     popup?.close();
-    //     window.removeEventListener("message", listener);
-    //     onSuccess();
-    //     onClose();
-    //   }
-    // };
-
-    // ConnectPage.jsx - Đoạn code listener được sửa lại
-
     const listener = (event) => {
-      // Kiểm tra an toàn: nguồn gốc và loại message
       if (
         event.origin !== "https://localhost:3007" ||
         event.data?.type !== "oauth_success"
@@ -52,32 +30,21 @@ const ConnectPage = ({ onClose, onSuccess }) => {
 
       const { pages } = event.data;
 
-      // Kiểm tra xem có page nào được trả về không
       if (pages && pages.length > 0) {
-        // Tạm thời chọn page đầu tiên trong danh sách
         const firstPage = pages[0];
-
         console.log("Đã nhận được dữ liệu từ popup:", firstPage);
 
-        // Cập nhật state của form với thông tin của page đã chọn
         setFormData((prev) => ({
           ...prev,
           pageName: firstPage.name,
           pageId: firstPage.id,
-          accessToken: firstPage.access_token, // Lấy page access token
+          accessToken: firstPage.access_token,
         }));
 
-        // Đóng popup và dọn dẹp
         popup?.close();
         window.removeEventListener("message", listener);
-
-        // Hiển thị thông báo thành công và đóng modal
-        // Bạn có thể muốn hiển thị một modal chọn page ở đây thay vì đóng ngay
         alert(`Đã kết nối với trang: ${firstPage.name}`);
-        // onSuccess(); // Có thể gọi sau khi người dùng submit form cuối cùng
-        // onClose();
       } else {
-        // Xử lý trường hợp người dùng không có page nào
         alert("Không tìm thấy trang Facebook nào để kết nối.");
         popup?.close();
         window.removeEventListener("message", listener);
@@ -94,7 +61,6 @@ const ConnectPage = ({ onClose, onSuccess }) => {
     onClose();
   };
 
-  // Tạo tên nền tảng hiển thị thân thiện
   const platformLabel = {
     Facebook: "Facebook",
     Instagram: "Instagram",
@@ -104,151 +70,183 @@ const ConnectPage = ({ onClose, onSuccess }) => {
   }[formData.platform];
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      {" "}
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-        {/* Header */}{" "}
-        <div className="flex justify-between items-center mb-6">
-          {" "}
-          <h2 className="text-2xl font-bold">Kết nối Page mới</h2>{" "}
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="flex justify-between items-center p-5 border-b border-gray-100 shrink-0">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-800">
+            Kết nối Page mới
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-800 transition"
           >
-            ×{" "}
-          </button>{" "}
+            <X size={24} />
+          </button>
         </div>
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Nền tảng */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Chọn nền tảng
-            </label>
-            <select
-              name="platform"
-              value={formData.platform}
-              onChange={handleChange}
-              className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-            >
-              <option value="Facebook">Facebook</option>
-              <option value="Instagram">Instagram</option>
-              <option value="YouTube">YouTube</option>
-              <option value="TikTok">TikTok</option>
-              <option value="X">X (Twitter)</option>
-            </select>
-          </div>
 
-          {/* Phương thức kết nối */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Phương thức kết nối
-            </label>
-            <div className="flex flex-col gap-2">
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="connectMethod"
-                  value="oauth"
-                  checked={formData.connectMethod === "oauth"}
-                  onChange={handleChange}
-                  className="accent-blue-600"
-                />
-                <span>OAuth (Khuyến dùng)</span>
+        <div className="p-5 md:p-6 overflow-y-auto custom-scrollbar">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-gray-700">
+                Chọn nền tảng
               </label>
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="connectMethod"
-                  value="manual"
-                  checked={formData.connectMethod === "manual"}
+              <div className="relative">
+                <select
+                  name="platform"
+                  value={formData.platform}
                   onChange={handleChange}
-                  className="accent-blue-600"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none appearance-none bg-white"
+                >
+                  <option value="Facebook">Facebook</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="TikTok">TikTok</option>
+                  <option value="X">X (Twitter)</option>
+                </select>
+                <Globe
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                  size={18}
                 />
-                <span>Nhập thủ công</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700">
+                Phương thức kết nối
               </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    formData.connectMethod === "oauth"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="connectMethod"
+                    value="oauth"
+                    checked={formData.connectMethod === "oauth"}
+                    onChange={handleChange}
+                    className="accent-blue-600 w-4 h-4"
+                  />
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm text-gray-800">
+                      OAuth
+                    </span>
+                    <span className="text-xs text-green-600 font-medium">
+                      Khuyên dùng
+                    </span>
+                  </div>
+                </label>
+
+                <label
+                  className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                    formData.connectMethod === "manual"
+                      ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                      : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="connectMethod"
+                    value="manual"
+                    checked={formData.connectMethod === "manual"}
+                    onChange={handleChange}
+                    className="accent-blue-600 w-4 h-4"
+                  />
+                  <span className="font-medium text-sm text-gray-800">
+                    Nhập thủ công
+                  </span>
+                </label>
+              </div>
             </div>
-          </div>
 
-          {/* Hiển thị phần OAuth động */}
-          {formData.connectMethod === "oauth" && (
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-              <h3 className="font-semibold mb-2">Kết nối OAuth</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Click nút bên dưới để kết nối {platformLabel} của bạn một cách
-                an toàn.
-              </p>
-              <button
-                type="button"
-                onClick={handleOAuthConnect}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 cursor-pointer"
-              >
-                🔗 Kết nối với {platformLabel}
-              </button>
-            </div>
-          )}
+            {formData.connectMethod === "oauth" && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 text-blue-600 shadow-sm">
+                  <ShieldCheck size={24} />
+                </div>
+                <h3 className="font-semibold text-gray-800">Kết nối bảo mật</h3>
+                <p className="text-sm text-gray-600 mt-1 mb-4">
+                  Chúng tôi sử dụng chuẩn OAuth 2.0 để kết nối an toàn với{" "}
+                  {platformLabel} mà không lưu mật khẩu của bạn.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleOAuthConnect}
+                  className="w-full sm:w-auto bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 transition flex items-center justify-center gap-2 font-medium shadow-lg shadow-blue-200"
+                >
+                  <Link size={18} /> Kết nối với {platformLabel}
+                </button>
+              </div>
+            )}
 
-          {/* Nhập thủ công */}
-          {formData.connectMethod === "manual" && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Tên Page/Channel
-                </label>
-                <input
-                  type="text"
-                  name="pageName"
-                  value={formData.pageName}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-                  placeholder="Nhập tên page..."
-                />
+            {/* Nhập thủ công */}
+            {formData.connectMethod === "manual" && (
+              <div className="space-y-4 animate-in slide-in-from-top-2 duration-200">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-gray-700">
+                    Tên Page/Channel
+                  </label>
+                  <input
+                    type="text"
+                    name="pageName"
+                    value={formData.pageName}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none"
+                    placeholder="Ví dụ: Shop Quần Áo..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-gray-700">
+                    Page ID
+                  </label>
+                  <input
+                    type="text"
+                    name="pageId"
+                    value={formData.pageId}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-100 focus:border-blue-500 outline-none font-mono text-sm"
+                    placeholder="123456789..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-gray-700">
+                    Access Token
+                  </label>
+                  <textarea
+                    name="accessToken"
+                    value={formData.accessToken}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 h-24 focus:ring-2 focus:ring-blue-100 focus:border-blue-500 resize-none outline-none font-mono text-xs"
+                    placeholder="EAA..."
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Page ID
-                </label>
-                <input
-                  type="text"
-                  name="pageId"
-                  value={formData.pageId}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"
-                  placeholder="Nhập Page ID..."
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Access Token
-                </label>
-                <textarea
-                  name="accessToken"
-                  value={formData.accessToken}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-2 h-24 focus:ring focus:ring-blue-200 resize-none"
-                  placeholder="Nhập access token..."
-                />
-              </div>
-            </>
-          )}
+            )}
 
-          {/* Buttons */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              💾 Kết nối Page
-            </button>
-          </div>
-        </form>
+            {/* Dummy div để tạo khoảng trống cuối khi scroll nếu cần */}
+            <div className="h-1"></div>
+          </form>
+        </div>
+
+        {/* Footer Buttons - Cố định ở dưới (Sticky footer inside modal) */}
+        <div className="p-5 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex flex-col-reverse sm:flex-row justify-end gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full sm:w-auto px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition"
+          >
+            Hủy bỏ
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-lg shadow-blue-200 transition"
+          >
+            💾 Hoàn tất kết nối
+          </button>
+        </div>
       </div>
     </div>
   );

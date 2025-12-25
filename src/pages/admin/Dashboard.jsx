@@ -1,35 +1,41 @@
-import React, { useEffect } from "react";
-import { Edit3, Video, Share2, Users, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Edit3, Video, Users, Plus } from "lucide-react";
 import { mediaStore } from "../../store/media";
-import { postStore } from "../../store/post";
 import { userStore } from "../../store/user";
+import { postTargetStore } from "../../store/postTarget";
 import { socialAccountStore } from "../../store/socialAccount";
-import { notificationStore } from "../../store/notification";
 import { Link } from "react-router-dom";
 import { activityStore } from "../../store/activity";
+import { ITEMS_PER_PAGE } from "../../utils/constants";
+import Paginate from "../../components/Paginate";
+import { formatTimeAgo } from "../../utils/formatTimeAgo";
 
 const Dashboard = () => {
   const media = mediaStore();
-  const post = postStore();
   const user = userStore();
+  const postTarget = postTargetStore();
   const socialAccount = socialAccountStore();
-  const notification = notificationStore();
   const activity = activityStore();
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
       await media.getAllMedia();
-      await post.getAllPost();
+      await postTarget.getAllPostTaget();
       await user.getAllUser();
       await socialAccount.getAllSocialAccount();
-      await notification.getAllNotification();
-      await activity.getAllActivity();
+      const response = await activity.getAllActivity({
+        page,
+        limit: ITEMS_PER_PAGE,
+      });
+      setTotalPages(response?.data?.totalPages || 1);
     };
     fetchData();
-  }, []);
+  }, [page]);
 
   return (
-    <div className=" bg-gray-50 min-h-screen mt-16">
+    <div className=" bg-gray-50 min-h-screen ">
       {/* Header */}
       <h1 className="text-2xl font-bold text-gray-800 mb-6">
         Tổng quan hệ thống
@@ -40,9 +46,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100">
           <div>
             <h2 className="text-gray-600 font-medium">Tổng Media</h2>
-            <p className="text-2xl font-bold mt-1">
-              {media?.data?.content?.length}
-            </p>
+            <p className="text-2xl font-bold mt-1">{media?.data?.totalItem}</p>
           </div>
           <div className="bg-gray-50 p-3 rounded-lg">
             <Edit3 className="w-6 h-6 text-blue-600" />
@@ -52,7 +56,7 @@ const Dashboard = () => {
           <div>
             <h2 className="text-gray-600 font-medium">Page kết nối</h2>
             <p className="text-2xl font-bold mt-1">
-              {post?.data?.content?.length}
+              {socialAccount?.data?.totalItem}
             </p>
           </div>
           <div className="bg-gray-50 p-3 rounded-lg">
@@ -63,7 +67,7 @@ const Dashboard = () => {
           <div>
             <h2 className="text-gray-600 font-medium">Bài viết</h2>
             <p className="text-2xl font-bold mt-1">
-              {post?.data?.content?.length}
+              {postTarget?.data?.totalItem}
             </p>
           </div>
           <div className="bg-gray-50 p-3 rounded-lg">
@@ -73,9 +77,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center justify-between border border-gray-100">
           <div>
             <h2 className="text-gray-600 font-medium">Nhân viên</h2>
-            <p className="text-2xl font-bold mt-1">
-              {user?.data?.data?.length}
-            </p>
+            <p className="text-2xl font-bold mt-1">{user?.data?.totalItem}</p>
           </div>
           <div className="bg-gray-50 p-3 rounded-lg">
             <Edit3 className="w-6 h-6 text-blue-600" />
@@ -120,12 +122,21 @@ const Dashboard = () => {
             key={index}
             className="flex justify-between items-center border-b pb-3 mb-3  border-gray-200"
           >
-            <p className="text-gray-700">{item?.details}</p>
+            <div>
+              <p className="text-gray-700">{item?.details}</p>
+              <span className="text-xs">{formatTimeAgo(item?.created_at)}</span>
+            </div>
             <span className="text-green-600 text-sm bg-green-50 px-3 py-1 rounded-full">
               {item?.action}
             </span>
           </div>
         ))}
+      </div>
+      <div className="mt-6">
+        <Paginate
+          pageCount={totalPages}
+          onPageChange={(newPage) => setPage(newPage.selected + 1)}
+        />
       </div>
     </div>
   );

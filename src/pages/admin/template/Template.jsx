@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { FileText, Hash, Play, Edit, Trash2 } from "lucide-react";
 import { templateStore } from "../../../store/template";
 import CreateTemplate from "./CreateTemplate";
@@ -9,13 +9,18 @@ import Paginate from "../../../components/Paginate";
 
 export default function Template() {
   const template = templateStore();
+
+  // --- STATE ---
   const [filter, setFilter] = useState("all");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [templateTypeToCreate, setTemplateTypeToCreate] = useState(null);
   const [editingTemplate, setEditingTemplate] = useState(null);
-  const [totalPages, setTotalPages] = useState(1);
-  const [page, setPage] = useState(1);
-  const [dataTemplate, setDataTemplate] = useState([]);
+
+  // State mới để xử lý Client-side Filtering
+  const [rawData, setRawData] = useState([]); // Chứa TOÀN BỘ dữ liệu lấy về
+  const [page, setPage] = useState(1); // Trang hiện tại
+  const ITEMS_PER_PAGE = 6; // Số lượng hiển thị mỗi trang (bạn có thể đổi số này)
+
   const [confirmation, setConfirmation] = useState({
     isOpen: false,
     title: "",
@@ -25,22 +30,53 @@ export default function Template() {
     confirmButtonClass: "bg-red-600 hover:bg-red-700",
   });
 
+  // --- 1. GỌI API: LẤY HẾT DỮ LIỆU ---
+  // Hàm này tách ra để dùng lại khi cần reload dữ liệu (sau khi tạo/xóa/sửa)
+  const fetchData = async () => {
+    try {
+      // Mẹo: limit=1000 để lấy hết dữ liệu về Client xử lý
+      // Vì API không có chức năng lọc, ta phải lấy về rồi tự lọc
+      const response = await template.getAllTemplate({ page: 1, limit: 1000 });
+      setRawData(response?.data?.content || []);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const params = { page, limit: 5 };
-        if (filter !== "all") {
-          params.type = filter;
-        }
-        const response = await template.getAllTemplate(params);
-        setTotalPages(response?.data?.totalPages || 1);
-        setDataTemplate(response?.data?.content || []);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
     fetchData();
-  }, [page, filter]);
+  }, []);
+
+  // --- 2. XỬ LÝ DỮ LIỆU (LỌC + PHÂN TRANG) ---
+  const processedData = useMemo(() => {
+    let result = rawData;
+
+    // BƯỚC A: LỌC (Client-side Filtering)
+    if (filter !== "all") {
+      // So sánh type của item với filter ('caption' hoặc 'hashtag')
+      // Lưu ý: Đảm bảo DB trả về 'caption'/'hashtag' viết thường giống value bộ lọc
+      result = result.filter((item) => item.type === filter);
+    }
+
+    // BƯỚC B: PHÂN TRANG (Client-side Pagination)
+    const totalItems = result.length;
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const currentData = result.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    return {
+      currentData, // Dữ liệu hiển thị ra màn hình
+      totalPages, // Tổng số trang tính toán được
+    };
+  }, [rawData, filter, page]);
+
+  // Reset về trang 1 khi đổi bộ lọc
+  useEffect(() => {
+    setPage(1);
+  }, [filter]);
+
+  // --- CÁC HÀM XỬ LÝ (Handlers) ---
 
   const handleUseTemplate = async (content) => {
     try {
@@ -59,9 +95,10 @@ export default function Template() {
       message: "Bạn có chắc chắn muốn xóa template này không?",
       onConfirm: async () => {
         const response = await template.deleteTemplate(id);
-        if (response.success) {
+        // Kiểm tra response tùy theo cấu trúc API của bạn (response.success hoặc status 200)
+        if (response || response.success) {
           Notification("success", "Xóa template thành công!");
-          template.getAllTemplate();
+          fetchData(); // Load lại toàn bộ dữ liệu
         } else {
           Notification("error", "Không thể xóa template!");
         }
@@ -80,22 +117,25 @@ export default function Template() {
     setIsCreateModalOpen(true);
   };
 
+  // Khi đóng modal tạo, gọi lại fetchData để cập nhật list mới
   const handleCloseCreateModal = () => {
     setIsCreateModalOpen(false);
     setTemplateTypeToCreate(null);
+    fetchData();
   };
 
   const handleOpenUpdateModal = (template) => {
     setEditingTemplate(template);
   };
 
+  // Khi đóng modal sửa, gọi lại fetchData để cập nhật list mới
   const handleCloseUpdateModal = () => {
     setEditingTemplate(null);
-    template.getAllTemplate(); // Tải lại danh sách sau khi cập nhật
+    fetchData();
   };
 
   return (
-    <div className="min-h-screen mt-16">
+    <div className="min-h-screen">
       {/* Header chính */}
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-800">
@@ -117,6 +157,7 @@ export default function Template() {
         </div>
       </div>
 
+      {/* Bộ lọc */}
       <div className="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-wrap gap-3 items-center">
         <span className="font-medium text-gray-800 mr-2">
           Bộ lọc Templates:
@@ -155,8 +196,8 @@ export default function Template() {
 
       {/* Danh sách templates */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {dataTemplate.length > 0 ? (
-          dataTemplate.map((t, index) => (
+        {processedData.currentData.length > 0 ? (
+          processedData.currentData.map((t, index) => (
             <div
               key={index}
               className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition"
@@ -181,9 +222,9 @@ export default function Template() {
                     <h3 className="font-semibold text-gray-800 text-base capitalize">
                       {t.type} {t.title}
                     </h3>
-                    <p className="text-gray-500 text-sm">
+                    <span className="text-gray-500 text-sm">
                       {t.category?.name || "Không có danh mục"}
-                    </p>
+                    </span>
                   </div>
                 </div>
                 <span
@@ -232,7 +273,9 @@ export default function Template() {
           ))
         ) : (
           <p className="text-gray-500 text-center col-span-full">
-            ⏳ Đang tải dữ liệu hoặc chưa có template nào.
+            {rawData.length === 0
+              ? "⏳ Đang tải dữ liệu..."
+              : `Không tìm thấy template loại "${filter}".`}
           </p>
         )}
       </div>
@@ -248,7 +291,6 @@ export default function Template() {
       {editingTemplate && (
         <UpdateTemplate
           template={editingTemplate}
-          // categories={categories}
           onClose={() => setEditingTemplate(null)}
           onSuccess={handleCloseUpdateModal}
         />
@@ -263,10 +305,14 @@ export default function Template() {
         confirmText={confirmation.confirmText}
         confirmButtonClass={confirmation.confirmButtonClass}
       />
-      <Paginate
-        pageCount={totalPages}
-        onPageChange={(newPage) => setPage(newPage.selected + 1)}
-      />
+
+      {/* Phân trang: Dùng totalPages tính toán từ client */}
+      <div className="mt-6">
+        <Paginate
+          pageCount={processedData.totalPages}
+          onPageChange={(newPage) => setPage(newPage.selected + 1)}
+        />
+      </div>
     </div>
   );
 }

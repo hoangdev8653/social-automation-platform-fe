@@ -15,6 +15,7 @@ export default function Notification() {
     const fetchData = async () => {
       await notification.getNotificationByUser();
     };
+
     fetchData();
   }, []);
 
