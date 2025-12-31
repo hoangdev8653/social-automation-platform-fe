@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BASE_URL_LOCAL } from "./utils/constants";
+import { BASE_URL_PRODUCTION } from "./utils/constants";
 import {
   getLocalStorage,
   setLocalStorage,
@@ -7,12 +7,9 @@ import {
 } from "./utils/localStorage";
 
 export const axiosConfig = axios.create({
-  baseURL: BASE_URL_LOCAL,
+  baseURL: BASE_URL_PRODUCTION,
 });
 
-// ========================
-// Request Interceptor
-// ========================
 axiosConfig.interceptors.request.use(
   (config) => {
     const accessToken = getLocalStorage("accessToken");
@@ -24,9 +21,6 @@ axiosConfig.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ========================
-// Refresh Token Logic
-// ========================
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -47,11 +41,9 @@ axiosConfig.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Nếu 401 thì refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Nếu đang refresh → chờ refresh xong
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -63,11 +55,9 @@ axiosConfig.interceptors.response.use(
           .catch((err) => Promise.reject(err));
       }
 
-      // Nếu chưa refresh → gọi API refresh
       isRefreshing = true;
 
       try {
-        // Thêm withCredentials: true để gửi cookie chứa refreshToken
         const res = await axios.post(
           `${BASE_URL_LOCAL}/auth/refresh-token`,
           {},
@@ -85,7 +75,6 @@ axiosConfig.interceptors.response.use(
       } catch (err) {
         processQueue(err, null);
         clearLocalStorage();
-        // Chuyển hướng về trang đăng nhập nếu refresh token thất bại
         window.location.href = "/login";
         return Promise.reject(err);
       } finally {
