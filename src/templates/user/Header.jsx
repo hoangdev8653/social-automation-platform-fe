@@ -50,7 +50,6 @@ const Header = () => {
           </NavLink>
 
           {/* Center - Nav */}
-          {/* Thay đổi: Giảm padding px-3 xuống px-2 ở màn hình nhỏ */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
             {navItems.map((item) => (
               <NavLink
@@ -66,23 +65,20 @@ const Header = () => {
                 }
               >
                 {item.icon}
-                {/* Thay đổi: Ẩn text label trên màn hình md, chỉ hiện ở lg trở lên */}
                 <span className="hidden lg:inline">{item.label}</span>
               </NavLink>
             ))}
           </nav>
 
-          {/* Right side - Desktop */}
           <div className="hidden md:flex items-center space-x-2 lg:space-x-4">
             <Notification />
 
             <a href="/profile" className="flex items-center gap-2">
               <img
-                src="https://i.pravatar.cc/40"
-                alt="User Avatar"
+                src={`https://ui-avatars.com/api/?name=${user?.name}&background=0D8ABC&color=fff`}
+                alt="avatar"
                 className="w-8 h-8 lg:w-10 lg:h-10 rounded-full"
               />
-              {/* Thay đổi: Ẩn thông tin tên/role ở màn hình md, hiện ở lg */}
               <div className="hidden lg:flex flex-col hover:opacity-70">
                 <p className="text-sm font-medium text-gray-700">
                   {user?.name}
