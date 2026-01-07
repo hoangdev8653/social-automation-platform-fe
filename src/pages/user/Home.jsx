@@ -31,19 +31,17 @@ export default function Home() {
   const filteredPosts =
     filter === "all" ? posts : posts.filter((p) => p.status === filter);
 
-  // 1. Cập nhật helper màu sắc để hỗ trợ missed_schedule
   const getStatusColor = (status) => {
     const colors = {
       published: "bg-green-50 text-green-700 border-green-200",
       scheduled: "bg-blue-50 text-blue-700 border-blue-200",
       failed: "bg-red-50 text-red-700 border-red-200",
-      missed_schedule: "bg-yellow-50 text-yellow-700 border-yellow-200", // Màu vàng cảnh báo
+      missed_schedule: "bg-yellow-50 text-yellow-700 border-yellow-200",
       draft: "bg-gray-100 text-gray-700 border-gray-200",
     };
     return colors[status] || "bg-gray-50 text-gray-600 border-gray-200";
   };
 
-  // 2. Định nghĩa danh sách các tab bộ lọc bạn muốn hiển thị
   const filterTabs = [
     { id: "all", label: "Tất cả" },
     { id: "published", label: "Đã đăng" },
@@ -71,13 +69,11 @@ export default function Home() {
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto">
-      {/* --- HEADER BỘ LỌC --- */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 mt-16">
         <h1 className="text-2xl font-bold text-gray-800 mb-4 sm:mb-0">
           Quản lý bài đăng
         </h1>
 
-        {/* 3. Render danh sách nút bấm nằm ngang */}
         <div className="flex overflow-x-auto gap-2 pb-2 sm:pb-0 w-full sm:w-auto no-scrollbar">
           {filterTabs.map((tab) => (
             <button
@@ -95,7 +91,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* --- DANH SÁCH BÀI VIẾT --- */}
       <div className="columns-1 md:columns-2 xl:columns-3 gap-6 space-y-6 pb-10">
         {filteredPosts.map((post) => (
           <div
@@ -103,16 +98,12 @@ export default function Home() {
             className="break-inside-avoid bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-lg transition-shadow duration-300 cursor-pointer group relative overflow-hidden"
             onClick={() => handlePreview(post.id)}
           >
-            {/* Header Card */}
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-blue-600">
                   <ImageIcon size={16} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 font-medium">
-                    Facebook Page
-                  </p>
                   <p className="text-xs text-gray-500">
                     {new Date(post.createdAt).toLocaleDateString("vi-VN", {
                       day: "2-digit",
@@ -124,14 +115,11 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-
-              {/* Badge trạng thái */}
               <span
                 className={`px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold rounded-full border ${getStatusColor(
                   post.status
                 )}`}
               >
-                {/* Logic hiển thị text badge */}
                 {post.status === "missed_schedule"
                   ? "Bị lỡ lịch"
                   : post.status === "published"
@@ -140,6 +128,8 @@ export default function Home() {
                   ? "Đã lên lịch"
                   : post.status === "failed"
                   ? "Thất bại"
+                  : post.status === "draft"
+                  ? "Chờ duyệt"
                   : post.status}
               </span>
             </div>
@@ -151,7 +141,6 @@ export default function Home() {
               {renderHashtags(post.hashtags)}
             </div>
 
-            {/* Media Gallery */}
             {post.media?.length > 0 && (
               <div
                 className={`grid gap-1 mt-3 rounded-lg overflow-hidden ${
@@ -203,7 +192,6 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Empty State */}
       {filteredPosts.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-gray-400">
           <div className="bg-gray-100 p-4 rounded-full mb-3">
